@@ -63,7 +63,8 @@ Salary, freelance, dividends, a tip jar — log it, see it, net it against spend
 - **Alerts** — opinionated nudges when things go sideways
 
 ### 🌐 Bring-your-own-server UX
-First thing the web app asks: **"Where's your server?"** Point it at `localhost`, a Tailscale IP, a domain — whatever. No hardcoded backend. One frontend build can talk to any Gift instance.
+
+- First thing the web app asks: **"Where's your server?"** Point it at `localhost`, a Tailscale IP, a domain — whatever. No hardcoded backend. One frontend build can talk to any Gift instance.
 ---
 
 ## 🖼️ Screenshots
@@ -147,91 +148,6 @@ docker build -f deployment/Dockerfile.web    -t gift-web .
 ```sh
 mise run api:build     # → server/bin/api_gateway
 cd client/gift-web && npm ci && npm run build   # → client/gift-web/dist
-```
-
-
-
-
----
-
-## 🛠️ Tech Stack
-
-<table>
-<tr>
-<td valign="top" width="50%">
-
-### Backend
-- **[Go 1.25.6](https://go.dev)** — statically compiled, single binary
-- **[Fiber v3](https://gofiber.io)** — fast HTTP, Express-style API
-- **[MongoDB v2 driver](https://www.mongodb.com/docs/drivers/go/)** — document store, flexible schema
-- **[JWT (golang-jwt v5)](https://github.com/golang-jwt/jwt)** — access + refresh pair
-- **[Viper](https://github.com/spf13/viper)** — `.env` + YAML config
-- **[zerolog](https://github.com/rs/zerolog)** — structured logging
-- **[Swaggo](https://github.com/swaggo/swag)** — OpenAPI spec generation
-
-</td>
-<td valign="top" width="50%">
-
-### Frontend
-- **[Vue 3.5](https://vuejs.org)** + **Composition API**
-- **[TypeScript 5](https://www.typescriptlang.org)** — end-to-end typed
-- **[Vite 8](https://vitejs.dev)** — instant dev server
-- **[Vue Router 4](https://router.vuejs.org)**
-- Custom **DonutChart** + **BarChart** components (no heavy chart lib)
-- **Pinia-style stores** for auth + server config
-
-</td>
-</tr>
-</table>
-
-### DevOps & Tooling
-- **[GoReleaser](https://goreleaser.com)** — 6-platform release automation on every tag
-- **[mise](https://mise.jdx.dev)** — unified task runner + toolchain pinning
-- **[air](https://github.com/air-verse/air)** — Go hot reload
-- **[pre-commit](https://pre-commit.com)** — hooks for lint, format, typecheck
-- **Docker** — `deployment/Dockerfile.server` + `deployment/Dockerfile.web`
-
-
----
-
-## 📚 API Docs
-
-The server auto-generates an **OpenAPI spec** via Swaggo. Once the API is running:
-
-- **Swagger UI:** http://localhost:3000/docs/
-- **Raw spec:** `server/docs/swagger.json` · `server/docs/swagger.yaml`
-- **Health check:** `GET /health`
-- **API base:** `/api/v1`
-
----
-
-## 🗂️ Project Structure
-
-```
-gift/
-├── server/                   # Go + Fiber backend
-│   ├── cmd/main.go           # entry point
-│   ├── configs/              # Viper config loaders
-│   ├── pkg/
-│   │   ├── app/              # Fiber app bootstrap
-│   │   ├── handlers/         # HTTP handlers per domain
-│   │   ├── repository/       # MongoDB data layer
-│   │   └── routes/           # route registration
-│   ├── services/             # business logic (auth, etc.)
-│   ├── middleware/           # JWT guard
-│   ├── platform/             # DB connection
-│   └── docs/                 # generated Swagger artifacts
-├── client/gift-web/          # Vue 3 + Vite frontend
-│   └── src/
-│       ├── views/            # Dashboard, Groups, Spendings, Incomes, Auth…
-│       ├── components/       # DonutChart, BarChart, forms
-│       ├── stores/           # auth + server-config state
-│       ├── api/              # typed API client
-│       └── utils/            # chart helpers, date utils
-├── deployment/               # Dockerfile.server · Dockerfile.web
-├── .github/workflows/        # GitHub Actions (GoReleaser on tag)
-├── .goreleaser.yaml          # 6-platform build matrix
-└── mise.toml                 # dev tasks & tool versions
 ```
 
 ---
