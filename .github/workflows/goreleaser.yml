@@ -38,9 +38,6 @@ jobs:
       - name: Cache Rust
         uses: swatinem/rust-cache@v2
 
-      - name: Install dependencies
-        run: bun install
-
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > src-tauri/gen/android/app/my-release-key.keystore
