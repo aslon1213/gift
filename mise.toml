@@ -31,6 +31,17 @@ description = "Build and release"
 run = "echo Building"
 
 [tasks."web:dev"]
-description = "Run API Gateway (Go) with air reload "
+description = "Run web app in dev mode"
 dir = "client/gift-web"
 run = "npm run dev"
+
+[tasks."web.build"]
+description = "Build web app"
+dir = "client/gift-web"
+run = "npm run dev"
+
+
+[tasks."web.start"]
+description = "Start Builded web app"
+dir = "client/gift-web"
+run = "npm run start"
