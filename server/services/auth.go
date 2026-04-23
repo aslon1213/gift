@@ -72,7 +72,7 @@ func (s *AuthService) GetUserByEmail(email string) (*repository.User, error) {
 }
 
 // Register creates a new user with the provided credentials
-func (s *AuthService) Register(email, username, password string) (*repository.User, error) {
+func (s *AuthService) Register(email, username, password string, currency string) (*repository.User, error) {
 	// Check if user already exists
 	_, err := s.userRepo.GetUserByEmail(email)
 	if err == nil {
@@ -93,6 +93,7 @@ func (s *AuthService) Register(email, username, password string) (*repository.Us
 		Email:    email,
 		Name:     username,
 		Password: hashedPassword,
+		Currency: currency,
 	}
 
 	err = s.userRepo.Create(

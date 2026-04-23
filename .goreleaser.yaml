@@ -9,9 +9,17 @@ before:
   hooks:
     # Backend: tidy the Go module that lives in ./server
     - sh -c "cd server && go mod tidy"
-    # Frontend: install deps and produce client/gift-web/dist
-    - sh -c "cd client/gift-web && npm ci"
-    - sh -c "cd client/gift-web && npm run build"
+    # Frontend: install deps and produce client//dist
+    - sh -c "cd client/gift && bun run build"
+
+    # Android: build the Android app
+    - sh -c 'echo "$KEYSTORE_BASE64" | base64 --decode >
+      client/gift/src-tauri/gen/android/app/release-key.keystore'
+    - sh -c 'cd client/gift && bun install'
+    - sh -c 'cd client/gift && bun tauri android build'
+    - sh -c 'cd client/gift && bun tauri android build --apk'
+    # IOS
+    # later
 
 builds:
   - id: api
@@ -32,19 +40,6 @@ builds:
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
-
-  - id: gift-android
-    builder: rust
-    dir: client/gift
-    # Default: [ "x86_64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-pc-windows-gnu", "aarch64-unknown-linux-gnu", "aarch64-apple-darwin" ]
-    targets:
-      - x86_64-apple-darwin
-      - x86_64-unknown-linux-gnu
-
-    command: build
-    flags:
-      - --release
-      - -p=subproject # when using cargo-workspaces
 
 archives:
   - id: api
@@ -71,7 +66,17 @@ archives:
     name_template: "{{ .ProjectName }}-web_{{ .Version }}"
     files:
       - README.md
-      - src: client/gift-web/dist/**/*
+      - src: client/gift/dist/**/*
+        dst: .
+        strip_parent: true
+
+  - id: android
+    meta: true
+    formats: [ tar.gz ]
+    name_template: "{{ .ProjectName }}-android_{{ .Version }}"
+    files:
+      - README.md
+      - src: client/gift/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
         dst: .
         strip_parent: true
 
@@ -88,7 +93,4 @@ changelog:
 
 release:
   footer: >-
-    
-    ---
-
-    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser)!

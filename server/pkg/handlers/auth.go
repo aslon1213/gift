@@ -25,6 +25,9 @@ type RegisterRequest struct {
 	// Password for the account (>=8 chars)
 	// required: true
 	Password string `json:"password"`
+	// Currency for the account
+	// required: true
+	Currency string `json:"currency"`
 }
 
 // RegisterResponse defines the response returned after registration
@@ -305,7 +308,11 @@ func (ah *AuthHandler) Register(c fiber.Ctx) error {
 			"data":    nil,
 		})
 	}
-	user, err := ah.authService.Register(input.Email, input.Username, input.Password)
+	if input.Currency == "" {
+		input.Currency = "UZS"
+	}
+
+	user, err := ah.authService.Register(input.Email, input.Username, input.Password, input.Currency)
 	if err != nil {
 		if errors.Is(err, services.ErrEmailInUse) {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{

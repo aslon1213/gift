@@ -33,3 +33,7 @@ go.work.sum
 .idea/
 .vscode/
 tmp/
+
+*.keystore
+*.jks
+key.txt
