@@ -38,10 +38,6 @@ jobs:
       - name: Cache Rust
         uses: swatinem/rust-cache@v2
 
-      - name: Decode keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > src-tauri/gen/android/app/my-release-key.keystore
-
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
@@ -58,3 +54,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
