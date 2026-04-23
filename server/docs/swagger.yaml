@@ -1,0 +1,1137 @@
+basePath: /api/v1
+definitions:
+  handlers.CreateGroupRequest:
+    properties:
+      member_ids:
+        example:
+        - '["60d5ec49f99a2d3a829a7d1f"]'
+        items:
+          type: string
+        type: array
+      name:
+        example: Book Club
+        type: string
+      owner_id:
+        example: 60d5ec49f99a2d3a829a7d1e
+        type: string
+    type: object
+  handlers.CreateSpendingRequest:
+    properties:
+      amount:
+        type: number
+      category:
+        type: string
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      group_id:
+        type: string
+    type: object
+  handlers.InviteMemberRequest:
+    properties:
+      member_id:
+        example: 60d5ec49f99a2d3a829a7d1e
+        type: string
+    type: object
+  handlers.LoginRequest:
+    properties:
+      email:
+        description: |-
+          User's email
+          required: true
+        type: string
+      password:
+        description: |-
+          User's password
+          required: true
+        type: string
+    type: object
+  handlers.LoginResponse:
+    properties:
+      access_token:
+        description: JWT access token
+        type: string
+      refresh_token:
+        description: JWT refresh token
+        type: string
+    type: object
+  handlers.RefreshRequest:
+    properties:
+      refresh_token:
+        description: |-
+          Refresh Token
+          required: true
+        type: string
+    type: object
+  handlers.RefreshResponse:
+    properties:
+      refresh_token:
+        description: New refresh token
+        type: string
+      token:
+        description: New access token
+        type: string
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        description: |-
+          User e-mail address
+          required: true
+        type: string
+      password:
+        description: |-
+          Password for the account (>=8 chars)
+          required: true
+        type: string
+      username:
+        description: |-
+          Username for the account
+          required: true
+        type: string
+    type: object
+  handlers.RegisterResponse:
+    properties:
+      email:
+        description: The user's email
+        type: string
+      id:
+        description: The user's ID
+        type: string
+      username:
+        description: The user's username
+        type: string
+    type: object
+  handlers.RemoveMemberRequest:
+    properties:
+      member_id:
+        example: 60d5ec49f99a2d3a829a7d1e
+        type: string
+    type: object
+  handlers.UpdateGroupRequest:
+    properties:
+      member_ids:
+        example:
+        - '["60d5ec49f99a2d3a829a7d1f"]'
+        items:
+          type: string
+        type: array
+      name:
+        example: Book Club
+        type: string
+      owner_id:
+        example: 60d5ec49f99a2d3a829a7d1e
+        type: string
+    type: object
+  handlers.UpdateSpendingRequest:
+    properties:
+      amount:
+        type: number
+      category:
+        type: string
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+    type: object
+  handlers.UpdateUserRequest:
+    description: UpdateUserRequest contains user fields required for the update API.
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  repository.Income:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      source:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  repository.Response:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:3000
+info:
+  contact:
+    email: hamidovaslon1@gmail.com
+    name: API Support
+    url: https://github.com/aslon1213/gift
+  description: This is a Gift API server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: https://github.com/aslon1213/gift
+  title: Gift API
+  version: 0.1.0
+paths:
+  /api/v1/incomes:
+    get:
+      description: Returns all incomes for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/repository.Income'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List incomes
+      tags:
+      - incomes
+    post:
+      consumes:
+      - application/json
+      description: Creates a new income entry for the authenticated user
+      parameters:
+      - description: Income data
+        in: body
+        name: income
+        required: true
+        schema:
+          $ref: '#/definitions/repository.Income'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/repository.Income'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create income
+      tags:
+      - incomes
+  /api/v1/incomes/{id}:
+    delete:
+      description: Deletes an income entry for the authenticated user by its ObjectID
+      parameters:
+      - description: Income ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete income
+      tags:
+      - incomes
+    get:
+      description: Returns the income by its ObjectID, for the authenticated user
+      parameters:
+      - description: Income ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Income'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get income by ID
+      tags:
+      - incomes
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing income by its ObjectID for the authenticated
+        user
+      parameters:
+      - description: Income ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Income data
+        in: body
+        name: income
+        required: true
+        schema:
+          $ref: '#/definitions/repository.Income'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Income'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update income
+      tags:
+      - incomes
+  /api/v1/users:
+    get:
+      description: Returns a list of users
+      parameters:
+      - description: Query
+        in: query
+        name: query
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      summary: List users
+      tags:
+      - users
+  /api/v1/users/{id}:
+    delete:
+      description: Deletes a user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: not implemented
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete user
+      tags:
+      - users
+    get:
+      description: Returns a single user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates user details by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update User Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update user
+      tags:
+      - users
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Log in with email and password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Log in
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Log out and revoke all refresh tokens for user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Log out
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh access and refresh tokens using a refresh token
+      parameters:
+      - description: Refresh request
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RefreshResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refresh JWT tokens
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: Registration request
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register user
+      tags:
+      - auth
+  /groups:
+    get:
+      description: Query all groups for the user by name. Returns groups where the
+        user is the owner or a member.
+      parameters:
+      - description: Group name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - BearerAuth: []
+      summary: List or filter groups for the user
+      tags:
+      - groups
+    post:
+      consumes:
+      - application/json
+      description: Create a new group
+      parameters:
+      - description: Group create request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - BearerAuth: []
+      summary: Create group
+      tags:
+      - groups
+  /groups/{id}:
+    delete:
+      description: Delete a group by id
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete group
+      tags:
+      - groups
+    get:
+      description: Get a specific group by its ID
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - BearerAuth: []
+      summary: Get group by ID
+      tags:
+      - groups
+    put:
+      consumes:
+      - application/json
+      description: Update a group's properties by id
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Group update request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - BearerAuth: []
+      summary: Update group
+      tags:
+      - groups
+  /groups/{id}/invite:
+    post:
+      consumes:
+      - application/json
+      description: Invite a member to a group (only owner can invite)
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Invite member request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.InviteMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - BearerAuth: []
+      summary: Invite member to group
+      tags:
+      - groups
+  /groups/{id}/remove:
+    post:
+      consumes:
+      - application/json
+      description: Remove a member from a group (only owner can remove)
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Remove member request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RemoveMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - BearerAuth: []
+      summary: Remove member from group
+      tags:
+      - groups
+  /spendings:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of spendings filtered by user_id, group_id, category,
+        date range; supports limit/offset
+      parameters:
+      - description: User ID (hex)
+        in: query
+        name: user_id
+        type: string
+      - description: Group ID (hex)
+        in: query
+        name: group_id
+        type: string
+      - description: Category
+        in: query
+        name: category
+        type: string
+      - description: Start date (RFC3339)
+        in: query
+        name: start_date
+        type: string
+      - description: End date (RFC3339)
+        in: query
+        name: end_date
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      summary: List spendings
+      tags:
+      - spendings
+    post:
+      consumes:
+      - application/json
+      description: Create a new spending record
+      parameters:
+      - description: Spending data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateSpendingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Create spending
+      tags:
+      - spendings
+  /spendings/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing spending (owner only)
+      parameters:
+      - description: Spending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete spending
+      tags:
+      - spendings
+    get:
+      consumes:
+      - application/json
+      description: Get a spending by its ID
+      parameters:
+      - description: Spending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      summary: Get spending by ID
+      tags:
+      - spendings
+    put:
+      consumes:
+      - application/json
+      description: Update an existing spending
+      parameters:
+      - description: Spending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Spending fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateSpendingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update spending
+      tags:
+      - spendings
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

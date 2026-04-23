@@ -1,0 +1,4 @@
+[build]
+  cmd = "swag init -g cmd/main.go && go build -o ./bin/main cmd/main.go"
+  bin = "./bin/main"
+  exclude_dir = ["tests", "tmp", "docs"]
