@@ -9,7 +9,7 @@
 [![Go](https://img.shields.io/badge/Go-1.25.6-00ADD8?logo=go&logoColor=white)](https://go.dev)
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![MongoDB](https://img.shields.io/badge/MongoDB-v2-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com)
 [![Fiber](https://img.shields.io/badge/Fiber-v3-00ACD7)](https://gofiber.io)
 [![GoReleaser](https://img.shields.io/badge/GoReleaser-✓-5D5D5D?logo=goreleaser&logoColor=white)](https://goreleaser.com)
 [![Release](https://img.shields.io/github/v/release/aslon1213/gift?include_prereleases&sort=semver)](https://github.com/aslon1213/gift/releases)
