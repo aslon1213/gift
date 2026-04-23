@@ -1,8 +1,23 @@
 {
-    "build": {
-        "cmd": "go build -o /app/main ./cmd/main.go"
+    "$schema": "https://schema.railpack.com",
+    "steps": {
+        "install": {
+            "commands": [
+                "go mod tidy"
+            ]
+        },
+        "build": {
+            "inputs": [
+                {
+                    "step": "install"
+                }
+            ],
+            "commands": [
+                "go build -o ./bin/main ./cmd/main.go"
+            ]
+        }
     },
-    "start": {
-        "cmd": "/app/main"
+    "deploy": {
+        "startCommand": "./bin/main"
     }
 }
