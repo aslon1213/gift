@@ -19,10 +19,7 @@ type Handlers struct {
 
 func NewHandlers(repo *repository.Repository) *Handlers {
 
-	config, err := configs.LoadConfig(".")
-	if err != nil {
-		panic(err)
-	}
+	config := configs.GetConfig()
 
 	return &Handlers{
 		UserHandler:     NewUserHandler(repo.Users),

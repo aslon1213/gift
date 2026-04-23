@@ -137,14 +137,8 @@ func isValidPassword(password string) bool {
 // @Failure 500 {object} map[string]interface{}
 // @Router /auth/login [post]
 func (ah *AuthHandler) Login(c fiber.Ctx) error {
-	config, err := configs.LoadConfig(".")
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Internal Server Error",
-			"data":    nil,
-		})
-	}
+	config := configs.GetConfig()
+
 	var input LoginRequest
 	if err := c.Bind().Body(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

@@ -215,10 +215,7 @@ func (s *AuthService) RefreshAccessToken(refreshTokenString string) (accessToken
 		return "", "", err
 	}
 
-	config, err := configs.LoadConfig(".")
-	if err != nil {
-		return "", "", err
-	}
+	config := configs.GetConfig()
 
 	if err := s.refreshTokenRepo.RevokeRefreshToken(refreshTokenString); err != nil {
 		return "", "", err

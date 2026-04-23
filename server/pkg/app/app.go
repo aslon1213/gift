@@ -1,6 +1,7 @@
 package app
 
 import (
+	"aslon1213/gift/configs"
 	"aslon1213/gift/pkg/handlers"
 	"aslon1213/gift/pkg/repository"
 	"aslon1213/gift/pkg/routes"
@@ -21,6 +22,7 @@ func (a *App) SetupRoutes() {
 }
 
 func (a *App) SetupFiber() {
+
 	a.fiber = fiber.New()
 
 	// add logger middleware
@@ -35,6 +37,10 @@ func (a *App) SetupFiber() {
 }
 
 func NewApp() *App {
+	_, err := configs.LoadConfig(".")
+	if err != nil {
+		panic(err)
+	}
 	db := platform.NewDB()
 	app := &App{
 		Router: routes.NewRouter(handlers.NewHandlers(repository.NewRepository(db.Database("gift")))),

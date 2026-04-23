@@ -62,29 +62,11 @@ Salary, freelance, dividends, a tip jar — log it, see it, net it against spend
 - **Goals** — "Save $3k for Bali by August" — progress-tracked
 - **Alerts** — opinionated nudges when things go sideways
 
-### 📊 Dashboard that actually tells you something
-A real dashboard, not a wall of numbers.
-
-- 🍩 **Donut chart** — spending by category at a glance
-- 📈 **Bar chart** — 30-day income vs spending flow
-- 💵 **Totals** — spent, earned, net balance
-- 📅 Monthly rollups + time-of-day greeting because we're nice like that
-
-### 🔐 Auth you can trust
-- Email + username registration (8-char min password, bcrypt hashed)
-- JWT **access + refresh** tokens — rotate without re-login
-- Protected routes via Fiber middleware
-- Profile editing (email, name, password), user search, logout
-
 ### 🌐 Bring-your-own-server UX
 First thing the web app asks: **"Where's your server?"** Point it at `localhost`, a Tailscale IP, a domain — whatever. No hardcoded backend. One frontend build can talk to any Gift instance.
-
 ---
 
 ## 🖼️ Screenshots
-
-> _Drop screenshots into `docs/screenshots/` and the README will pick them up._
-
 <div align="center">
 
 | Dashboard | Groups | Spendings |
@@ -92,45 +74,6 @@ First thing the web app asks: **"Where's your server?"** Point it at `localhost`
 | ![Dashboard](docs/screenshots/dashboard.png) | ![Groups](docs/screenshots/groups.png) | ![Spendings](docs/screenshots/spendings.png) |
 
 </div>
-
----
-
-## 🛠️ Tech Stack
-
-<table>
-<tr>
-<td valign="top" width="50%">
-
-### Backend
-- **[Go 1.25.6](https://go.dev)** — statically compiled, single binary
-- **[Fiber v3](https://gofiber.io)** — fast HTTP, Express-style API
-- **[MongoDB v2 driver](https://www.mongodb.com/docs/drivers/go/)** — document store, flexible schema
-- **[JWT (golang-jwt v5)](https://github.com/golang-jwt/jwt)** — access + refresh pair
-- **[Viper](https://github.com/spf13/viper)** — `.env` + YAML config
-- **[zerolog](https://github.com/rs/zerolog)** — structured logging
-- **[Swaggo](https://github.com/swaggo/swag)** — OpenAPI spec generation
-
-</td>
-<td valign="top" width="50%">
-
-### Frontend
-- **[Vue 3.5](https://vuejs.org)** + **Composition API**
-- **[TypeScript 5](https://www.typescriptlang.org)** — end-to-end typed
-- **[Vite 8](https://vitejs.dev)** — instant dev server
-- **[Vue Router 4](https://router.vuejs.org)**
-- Custom **DonutChart** + **BarChart** components (no heavy chart lib)
-- **Pinia-style stores** for auth + server config
-
-</td>
-</tr>
-</table>
-
-### DevOps & Tooling
-- **[GoReleaser](https://goreleaser.com)** — 6-platform release automation on every tag
-- **[mise](https://mise.jdx.dev)** — unified task runner + toolchain pinning
-- **[air](https://github.com/air-verse/air)** — Go hot reload
-- **[pre-commit](https://pre-commit.com)** — hooks for lint, format, typecheck
-- **Docker** — `deployment/Dockerfile.server` + `deployment/Dockerfile.web`
 
 ---
 
@@ -206,6 +149,49 @@ mise run api:build     # → server/bin/api_gateway
 cd client/gift-web && npm ci && npm run build   # → client/gift-web/dist
 ```
 
+
+
+
+---
+
+## 🛠️ Tech Stack
+
+<table>
+<tr>
+<td valign="top" width="50%">
+
+### Backend
+- **[Go 1.25.6](https://go.dev)** — statically compiled, single binary
+- **[Fiber v3](https://gofiber.io)** — fast HTTP, Express-style API
+- **[MongoDB v2 driver](https://www.mongodb.com/docs/drivers/go/)** — document store, flexible schema
+- **[JWT (golang-jwt v5)](https://github.com/golang-jwt/jwt)** — access + refresh pair
+- **[Viper](https://github.com/spf13/viper)** — `.env` + YAML config
+- **[zerolog](https://github.com/rs/zerolog)** — structured logging
+- **[Swaggo](https://github.com/swaggo/swag)** — OpenAPI spec generation
+
+</td>
+<td valign="top" width="50%">
+
+### Frontend
+- **[Vue 3.5](https://vuejs.org)** + **Composition API**
+- **[TypeScript 5](https://www.typescriptlang.org)** — end-to-end typed
+- **[Vite 8](https://vitejs.dev)** — instant dev server
+- **[Vue Router 4](https://router.vuejs.org)**
+- Custom **DonutChart** + **BarChart** components (no heavy chart lib)
+- **Pinia-style stores** for auth + server config
+
+</td>
+</tr>
+</table>
+
+### DevOps & Tooling
+- **[GoReleaser](https://goreleaser.com)** — 6-platform release automation on every tag
+- **[mise](https://mise.jdx.dev)** — unified task runner + toolchain pinning
+- **[air](https://github.com/air-verse/air)** — Go hot reload
+- **[pre-commit](https://pre-commit.com)** — hooks for lint, format, typecheck
+- **Docker** — `deployment/Dockerfile.server` + `deployment/Dockerfile.web`
+
+
 ---
 
 ## 📚 API Docs
@@ -216,21 +202,6 @@ The server auto-generates an **OpenAPI spec** via Swaggo. Once the API is runnin
 - **Raw spec:** `server/docs/swagger.json` · `server/docs/swagger.yaml`
 - **Health check:** `GET /health`
 - **API base:** `/api/v1`
-
-### Endpoint groups
-
-| Area       | Routes                                                       |
-| ---------- | ------------------------------------------------------------ |
-| Auth       | `POST /register` · `POST /login` · `POST /refresh` · `POST /logout` |
-| Users      | `GET /me` · `PATCH /me` · `GET /users/search`                |
-| Groups     | `GET/POST/PATCH/DELETE /groups` · `POST /groups/:id/invite` · `DELETE /groups/:id/members/:uid` |
-| Spendings  | `GET/POST/PATCH/DELETE /spendings` (filters: `user_id`, `group_id`, `category`, `start_date`, `end_date`, `limit`, `offset`) |
-| Incomes    | `GET/POST/PATCH/DELETE /incomes`                             |
-| Budgets    | `GET/POST/PATCH/DELETE /budgets`                             |
-| Goals      | `GET/POST/PATCH/DELETE /goals`                               |
-| Alerts     | `GET/POST/PATCH/DELETE /alerts`                              |
-
-All write endpoints require a valid JWT in `Authorization: Bearer <token>`.
 
 ---
 
@@ -265,39 +236,9 @@ gift/
 
 ---
 
-## 🧰 Available Tasks
-
-```sh
-mise run api          # run API with `go run .`
-mise run api:dev      # run API with air hot-reload
-mise run api:build    # build → server/bin/api_gateway
-mise run web:dev      # start Vite dev server
-mise run release      # placeholder for release flow
-```
-
----
-
-## 🚢 Releasing
-
-Every git tag kicks off **`.github/workflows/goreleaser.yml`**, which:
-
-1. Tidies the Go module
-2. `npm ci && npm run build` on the frontend
-3. Cross-compiles `gift-api` for 6 OS/arch combos
-4. Bundles the web dist into a separate archive
-5. Ships everything — plus the Swagger spec and checksums — to GitHub Releases
-
-```sh
-git tag v0.1.0
-git push origin v0.1.0
-# → GitHub Actions handles the rest 🪄
-```
-
----
-
 ## 🤝 Contributing
 
-PRs welcome — this is a vibes-coded project that's actually going somewhere.
+PRs welcome
 
 1. Fork + branch
 2. `mise install && mise run api:dev` — make sure it runs locally
@@ -305,12 +246,6 @@ PRs welcome — this is a vibes-coded project that's actually going somewhere.
 4. Open a PR with a clear description
 
 Found a bug? [Open an issue.](https://github.com/aslon1213/gift/issues)
-
----
-
-## 📜 License
-
-_Add a LICENSE file at the root — MIT is a reasonable default for self-hosted projects._
 
 ---
 

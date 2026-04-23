@@ -13,10 +13,8 @@ import (
 func NewDB() *mongo.Client {
 	log.Debug().Msg("Initializing database connection")
 
-	config, err := configs.LoadConfig(".")
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to load config")
-	}
+	config := configs.GetConfig()
+
 	uri := ""
 	if config.DB.Auth {
 		uri = config.DB.URL
