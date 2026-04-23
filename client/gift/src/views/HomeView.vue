@@ -10,6 +10,12 @@ import type { IconName } from '../components/icons'
 import { signed } from '../utils/format'
 import { lastNDays, formatDay, groupBy, sumBy } from '../utils/charts'
 
+// Signed whole-number amount, e.g. +$1,513 or −$240.
+function signedWhole(n: number, cur = '$'): string {
+  const sign = n >= 0 ? '+' : '−'
+  return sign + cur + Math.abs(Math.round(n)).toLocaleString('en-US')
+}
+
 const router = useRouter()
 
 const groups = ref<Group[]>([])
@@ -246,7 +252,7 @@ onMounted(async () => {
         <p class="eyebrow">GOOD AFTERNOON</p>
         <h1 class="hero">
           Net for {{ monthLabel.split(' ')[0].slice(0, 3) }}<br />
-          is <em class="net-pos">{{ signed(monthNet, currency).replace(/,/g, ',') }}</em>
+          is <em class="net-pos">{{ signedWhole(monthNet, currency) }}</em>
         </h1>
       </div>
 
@@ -254,12 +260,10 @@ onMounted(async () => {
       <div class="card-ink net-card">
         <div class="row spread">
           <span class="nw-label">NET WORTH · 30D</span>
-          <span class="nw-change">▲ {{ signed(netWorth30dDelta, currency) }}</span>
+          <span class="nw-change">▲ {{ signedWhole(netWorth30dDelta, currency) }}</span>
         </div>
         <div class="money money-big inverse">
-          <span class="cur">{{ currency }}</span>
-          {{ Math.floor(netWorth).toLocaleString()
-          }}<span class="decimals">.{{ (Math.abs(netWorth) % 1).toFixed(2).slice(2) }}</span>
+          <span class="cur">{{ currency }}</span><span class="int">{{ Math.floor(Math.abs(netWorth)).toLocaleString() }}</span><span class="decimals">.{{ (Math.abs(netWorth) % 1).toFixed(2).slice(2) }}</span>
         </div>
         <div class="spark">
           <Sparkline :data="spark" :width="314" :height="52" stroke="#F5F1E8" />
@@ -275,7 +279,7 @@ onMounted(async () => {
           </div>
           <div>
             <div class="nw-stat-label">NET</div>
-            <div class="nw-stat-value nw-net">{{ signed(monthNet, currency).replace(/\.\d+$/, '') }}</div>
+            <div class="nw-stat-value nw-net">{{ signedWhole(monthNet, currency) }}</div>
           </div>
         </div>
       </div>
@@ -419,7 +423,8 @@ onMounted(async () => {
 /* Net worth card */
 .net-card {
   margin-top: 22px;
-  padding: 20px 22px 18px;
+  padding: clamp(16px, 4.5vw, 20px) clamp(16px, 5vw, 22px) clamp(14px, 4vw, 18px);
+  overflow: hidden;
 }
 
 .net-card .nw-label {
@@ -433,24 +438,40 @@ onMounted(async () => {
   font-family: var(--mono);
   font-size: 10px;
   color: #4ade80;
+  white-space: nowrap;
 }
 
 .net-card .money-big {
-  font-size: 56px;
+  /* Scales 40 → 56 depending on viewport; never overflows the ink card */
+  font-size: clamp(40px, 12vw, 56px);
   line-height: 1;
   letter-spacing: -0.02em;
   margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  min-width: 0;
+}
+
+.net-card .money-big .int {
+  min-width: 0;
 }
 
 .net-card .money-big .cur {
-  font-size: 22px;
+  font-size: clamp(16px, 5vw, 22px);
   vertical-align: top;
   margin-right: 2px;
   color: rgba(245, 241, 232, 0.55);
+  line-height: 1;
+  align-self: flex-start;
 }
 
 .net-card .money-big .decimals {
-  font-size: 28px;
+  font-size: clamp(20px, 6.5vw, 28px);
   color: rgba(245, 241, 232, 0.6);
 }
 
@@ -463,8 +484,12 @@ onMounted(async () => {
   padding-top: 14px;
   border-top: 1px solid rgba(245, 241, 232, 0.1);
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 3vw, 14px);
+}
+
+.nw-stats > div {
+  min-width: 0;
 }
 
 .nw-stat-label {
@@ -476,8 +501,13 @@ onMounted(async () => {
 
 .nw-stat-value {
   font-family: var(--serif);
-  font-size: 20px;
+  font-size: clamp(15px, 5vw, 20px);
   margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  letter-spacing: -0.01em;
 }
 
 .nw-in {

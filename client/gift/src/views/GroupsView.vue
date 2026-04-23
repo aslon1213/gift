@@ -7,8 +7,17 @@ import { toast } from '../stores/toast'
 import Icon from '../components/Icon.vue'
 import Avatar from '../components/Avatar.vue'
 import type { IconName } from '../components/icons'
-import { colorForId, money, signed } from '../utils/format'
+import { colorForId } from '../utils/format'
 import { sumBy } from '../utils/charts'
+
+// Whole-dollar money formatters — avoid `.00` cents on mobile so big numbers fit in the card.
+function moneyWhole(n: number, cur = '$'): string {
+  return (n < 0 ? '−' : '') + cur + Math.abs(Math.round(n)).toLocaleString('en-US')
+}
+function signedWhole(n: number, cur = '$'): string {
+  const sign = n >= 0 ? '+' : '−'
+  return sign + cur + Math.abs(Math.round(n)).toLocaleString('en-US')
+}
 
 const groups = ref<Group[]>([])
 const groupSpendings = ref<Record<string, Spending[]>>({})
@@ -210,16 +219,16 @@ onMounted(load)
       <div>
         <div class="s-label">NET</div>
         <div class="s-val" :style="{ color: summary.nets >= 0 ? 'var(--moss)' : 'var(--hot)' }">
-          {{ signed(summary.nets, summary.cur) }}
+          {{ signedWhole(summary.nets, summary.cur) }}
         </div>
       </div>
       <div>
         <div class="s-label">TRACKED</div>
-        <div class="s-val">{{ money(summary.tracked, summary.cur) }}</div>
+        <div class="s-val">{{ moneyWhole(summary.tracked, summary.cur) }}</div>
       </div>
       <div>
         <div class="s-label">THIS MO</div>
-        <div class="s-val">{{ money(summary.thisMonth, summary.cur) }}</div>
+        <div class="s-val">{{ moneyWhole(summary.thisMonth, summary.cur) }}</div>
       </div>
     </div>
 
@@ -268,11 +277,11 @@ onMounted(load)
                 {{
                   groupBalance(g) === 0
                     ? 'SETTLED'
-                    : signed(groupBalance(g), groupCurrency(g))
+                    : signedWhole(groupBalance(g), groupCurrency(g))
                 }}
               </div>
               <div class="total">
-                {{ money(groupTotal(g), groupCurrency(g)) }} TOTAL
+                {{ moneyWhole(groupTotal(g), groupCurrency(g)) }} TOTAL
               </div>
             </div>
           </router-link>
@@ -470,15 +479,19 @@ onMounted(load)
 
 .summary-strip {
   margin-top: 22px;
-  padding: 16px 18px;
+  padding: clamp(14px, 4.2vw, 16px) clamp(14px, 4.5vw, 18px);
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 3vw, 14px);
   border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.summary-strip > div {
+  min-width: 0;
 }
 .summary-strip > div + div {
   border-left: 1px solid rgba(245, 241, 232, 0.12);
-  padding-left: 14px;
+  padding-left: clamp(8px, 3vw, 14px);
 }
 .summary-strip .s-label {
   font-family: var(--mono);
@@ -488,9 +501,15 @@ onMounted(load)
 }
 .summary-strip .s-val {
   font-family: var(--serif);
-  font-size: 22px;
+  /* Scales from 15px on iPhone SE up to 22px on tablet+ */
+  font-size: clamp(15px, 5.5vw, 22px);
   margin-top: 2px;
   color: var(--paper);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .section-head {
@@ -526,10 +545,10 @@ onMounted(load)
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 16px 18px;
+  padding: clamp(14px, 4vw, 16px) clamp(14px, 4.5vw, 18px);
   display: grid;
-  grid-template-columns: 44px 1fr auto;
-  gap: 14px;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: clamp(10px, 3vw, 14px);
   align-items: center;
   text-decoration: none;
   color: inherit;
@@ -548,11 +567,19 @@ onMounted(load)
   justify-content: center;
   flex-shrink: 0;
 }
+.group-card .body {
+  min-width: 0;
+}
 .group-card .body .name {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: clamp(17px, 5.5vw, 22px);
   line-height: 1.1;
   color: var(--ink);
+  letter-spacing: -0.01em;
+  /* Long group names truncate cleanly instead of pushing the balance off-card */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .group-card .body .sub {
   font-family: var(--mono);
@@ -560,13 +587,20 @@ onMounted(load)
   letter-spacing: 0.06em;
   color: var(--ink-mute);
   margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .group-card .meta {
   text-align: right;
+  min-width: 0;
+  max-width: 40%;
 }
 .group-card .meta .bal {
   font-family: var(--mono);
   font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .group-card .meta .total {
   font-family: var(--mono);
@@ -574,6 +608,10 @@ onMounted(load)
   color: var(--ink-ghost);
   margin-top: 3px;
   letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .group-card > .linklike {
   position: absolute;
