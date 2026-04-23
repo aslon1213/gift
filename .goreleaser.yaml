@@ -9,15 +9,15 @@ before:
   hooks:
     # Backend: tidy the Go module that lives in ./server
     - sh -c "cd server && go mod tidy"
-    # Frontend: install deps and produce client//dist
-    - sh -c "cd client/gift && bun run build"
 
+    - sh -c 'cd client/gift && bun install'
+    # Frontend: install deps and produce client/gift/dist
+    - sh -c "cd client/gift && bun run build"
     # Android: build the Android app
     - sh -c 'echo "$KEYSTORE_BASE64" | base64 --decode >
       client/gift/src-tauri/gen/android/app/release-key.keystore'
-    - sh -c 'cd client/gift && bun install'
-    - sh -c 'cd client/gift && bun tauri android build'
-    - sh -c 'cd client/gift && bun tauri android build --apk'
+    - sh -c 'cd client/gift && bun run tauri android build'
+    - sh -c 'cd client/gift && bun run tauri android build --apk'
     # IOS
     # later
 
