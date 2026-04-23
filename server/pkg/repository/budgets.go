@@ -67,6 +67,28 @@ func (r *BudgetRepository) List(ctx context.Context) ([]*Budget, error) {
 	return budgets, nil
 }
 
+func (r *BudgetRepository) ListByUser(ctx context.Context, userID bson.ObjectID) ([]*Budget, error) {
+	cur, err := r.coll.Find(ctx, bson.M{"user_id": userID})
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := cur.Close(ctx); err != nil {
+			log.Printf("failed to close cursor: %v", err)
+		}
+	}()
+
+	budgets := make([]*Budget, 0)
+	if err := cur.All(ctx, &budgets); err != nil {
+		return nil, err
+	}
+	return budgets, nil
+}
+
+func (r *BudgetRepository) CountByUser(ctx context.Context, userID bson.ObjectID) (int64, error) {
+	return r.coll.CountDocuments(ctx, bson.M{"user_id": userID})
+}
+
 func (r *BudgetRepository) Update(ctx context.Context, id bson.ObjectID, b *Budget) error {
 	b.UpdatedAt = time.Now()
 	_, err := r.coll.UpdateOne(

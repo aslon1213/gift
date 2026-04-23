@@ -6,6 +6,7 @@ import (
 	"aslon1213/gift/pkg/repository"
 	"aslon1213/gift/pkg/routes"
 	"aslon1213/gift/platform"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -42,8 +43,9 @@ func NewApp() *App {
 		panic(err)
 	}
 	db := platform.NewDB()
+	giftDB := db.Database("gift")
 	app := &App{
-		Router: routes.NewRouter(handlers.NewHandlers(repository.NewRepository(db.Database("gift")))),
+		Router: routes.NewRouter(handlers.NewHandlers(repository.NewRepository(giftDB), giftDB, time.Now())),
 	}
 	app.SetupFiber()
 	return app

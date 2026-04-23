@@ -84,6 +84,11 @@ func (r *Router) RegisterRoutes(app *fiber.App) {
 	goals.Get("/:id", r.handlers.GoalHandler.GetByID)
 	goals.Put("/:id", r.handlers.GoalHandler.Update)
 	goals.Delete("/:id", r.handlers.GoalHandler.Delete)
+	goals.Post("/:id/contribute", r.handlers.GoalHandler.Contribute)
+
+	// settings
+	settings := api.Group("/settings", middleware.Protected())
+	settings.Get("/", r.handlers.SettingsHandler.Get)
 
 	// budgets
 	budgets := api.Group("/budgets", middleware.Protected())

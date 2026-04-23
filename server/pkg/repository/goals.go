@@ -67,6 +67,36 @@ func (r *GoalRepository) List(ctx context.Context) ([]*Goal, error) {
 	return goals, nil
 }
 
+func (r *GoalRepository) ListByUser(ctx context.Context, userID bson.ObjectID) ([]*Goal, error) {
+	cur, err := r.coll.Find(ctx, bson.M{"user_id": userID})
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := cur.Close(ctx); err != nil {
+			log.Printf("failed to close cursor: %v", err)
+		}
+	}()
+
+	goals := make([]*Goal, 0)
+	if err := cur.All(ctx, &goals); err != nil {
+		return nil, err
+	}
+	return goals, nil
+}
+
+func (r *GoalRepository) Contribute(ctx context.Context, id bson.ObjectID, delta float64) error {
+	_, err := r.coll.UpdateOne(
+		ctx,
+		bson.M{"_id": id},
+		bson.M{
+			"$inc": bson.M{"current_amount": delta},
+			"$set": bson.M{"updated_at": time.Now()},
+		},
+	)
+	return err
+}
+
 func (r *GoalRepository) Update(ctx context.Context, id bson.ObjectID, g *Goal) error {
 	g.UpdatedAt = time.Now()
 	_, err := r.coll.UpdateOne(

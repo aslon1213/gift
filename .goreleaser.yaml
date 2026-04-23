@@ -33,20 +33,31 @@ builds:
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
 
+  - id: gift-android
+    builder: rust
+    dir: client/gift
+    # Default: [ "x86_64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-pc-windows-gnu", "aarch64-unknown-linux-gnu", "aarch64-apple-darwin" ]
+    targets:
+      - x86_64-apple-darwin
+      - x86_64-unknown-linux-gnu
+
+    command: build
+    flags:
+      - --release
+      - -p=subproject # when using cargo-workspaces
+
 archives:
   - id: api
     ids:
       - api
-    formats: [tar.gz]
+    formats: [ tar.gz ]
     name_template: >-
-      {{ .ProjectName }}-api_{{ .Version }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
+      {{ .ProjectName }}-api_{{ .Version }}_ {{- title .Os }}_ {{- if eq .Arch
+      "amd64" }}x86_64 {{- else if eq .Arch "386" }}i386 {{- else }}{{ .Arch
+      }}{{ end }}
     format_overrides:
       - goos: windows
-        formats: [zip]
+        formats: [ zip ]
     files:
       - README.md
       - src: server/docs/swagger.json
@@ -56,7 +67,7 @@ archives:
 
   - id: web
     meta: true
-    formats: [tar.gz]
+    formats: [ tar.gz ]
     name_template: "{{ .ProjectName }}-web_{{ .Version }}"
     files:
       - README.md
@@ -77,7 +88,7 @@ changelog:
 
 release:
   footer: >-
-
+    
     ---
 
     Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
