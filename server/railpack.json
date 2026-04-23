@@ -1,23 +1,29 @@
 {
-    "$schema": "https://schema.railpack.com",
-    "steps": {
-        "install": {
-            "commands": [
-                "go mod tidy"
-            ]
-        },
-        "build": {
-            "inputs": [
-                {
-                    "step": "install"
-                }
-            ],
-            "commands": [
-                "go build -o ./bin/main ./cmd/main.go"
-            ]
-        }
+  "$schema": "https://schema.railpack.com",
+  "provider": "go",
+  "packages": {
+    "go": "1.25"
+  },
+  "steps": {
+    "install": {
+      "commands": [
+        "go mod download"
+      ],
+      "caches": ["go-mod", "go-build"]
     },
-    "deploy": {
-        "startCommand": "./bin/main"
+    "build": {
+      "inputs": [{ "step": "install" }],
+      "variables": {
+        "CGO_ENABLED": "0"
+      },
+      "commands": [
+        "go build -ldflags=\"-w -s\" -o ./bin/main ./cmd/main.go"
+      ],
+      "caches": ["go-build"]
     }
+  },
+  "deploy": {
+    "inputs": [{ "step": "build" }],
+    "startCommand": "./bin/main"
+  }
 }
