@@ -1,0 +1,10 @@
+server:
+  - "server/**"
+
+web:
+  - "client/gift-web/**"
+
+docs:
+  - "docs/**"
+  - "README.md"
+  - "server/docs/**"
