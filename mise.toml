@@ -44,4 +44,4 @@ run = "npm run dev"
 [tasks."web.start"]
 description = "Start Builded web app"
 dir = "client/gift-web"
-run = "npm run start"
+run = "npm run preview"

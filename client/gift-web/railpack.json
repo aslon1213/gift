@@ -1,13 +1,37 @@
 {
     "$schema": "https://schema.railpack.com",
+    "provider": "node",
+    "packages": {
+        "node": "25.8.2"
+    },
     "steps": {
-        "build": {
+        "install": {
             "commands": [
-                "mise run web.build"
+                "npm ci"
+            ],
+            "caches": [
+                "npm"
+            ]
+        },
+        "build": {
+            "inputs": [
+                {
+                    "step": "install"
+                }
+            ],
+            "commands": [
+                "npm run build"
             ]
         }
     },
     "deploy": {
-        "startCommand": "mise run web.start"
+        "inputs": [
+            {
+                "step": "build"
+            }
+        ],
+        "variables": {
+            "RAILPACK_SPA_OUTPUT_DIR": "dist"
+        }
     }
 }
