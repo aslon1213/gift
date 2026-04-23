@@ -1,0 +1,36 @@
+[tools]
+air = "latest"
+go = "1.26"
+golangci-lint = "latest"
+goreleaser = "latest"
+node = "25.8.2"
+npm = "11.13.0"
+pre-commit = "latest"
+swag = "1.16.6"
+
+
+[tasks."api"]
+description = "Run API Gateway (Go)"
+dir = "server"
+run = "go run ."
+
+[tasks."api:dev"]
+description = "Run API Gateway (Go) with air reload "
+dir = "server"
+run = "air"
+
+
+[tasks."api:build"]
+description = "Build API Gateway binary"
+dir = "server"
+run = "go build -o bin/api_gateway ."
+
+
+[tasks."release"]
+description = "Build and release"
+run = "echo Building"
+
+[tasks."web:dev"]
+description = "Run API Gateway (Go) with air reload "
+dir = "client/gift-web"
+run = "npm run dev"

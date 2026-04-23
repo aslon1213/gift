@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+project_name: gift
+
+before:
+  hooks:
+    # Backend: tidy the Go module that lives in ./server
+    - sh -c "cd server && go mod tidy"
+    # Frontend: install deps and produce client/gift-web/dist
+    - sh -c "cd client/gift-web && npm ci"
+    - sh -c "cd client/gift-web && npm run build"
+
+builds:
+  - id: api
+    dir: server
+    main: ./cmd
+    binary: gift-api
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: api
+    ids:
+      - api
+    formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}-api_{{ .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - README.md
+      - src: server/docs/swagger.json
+        dst: docs/swagger.json
+      - src: server/docs/swagger.yaml
+        dst: docs/swagger.yaml
+
+  - id: web
+    meta: true
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}-web_{{ .Version }}"
+    files:
+      - README.md
+      - src: client/gift-web/dist/**/*
+        dst: .
+        strip_parent: true
+
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  footer: >-
+
+    ---
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
