@@ -6,8 +6,8 @@ COPY client/gift-web/package.json client/gift-web/package-lock.json ./
 
 RUN npm ci
 
-COPY client/gift-web/ .
+COPY client/gift/ .
 
 RUN npm run build
 
-CMD ["./main"]
+CMD ["npm", "run", "preview"]

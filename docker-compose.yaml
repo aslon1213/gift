@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:admin}
+    networks:
+      - gift-network
+  api:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.server
+    ports:
+      - 3000:3000
+    env_file:
+      - server/.env
+    environment:
+      - DB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME:admin}:${MONGO_INITDB_ROOT_PASSWORD:admin}@mongo:27017
+    depends_on:
+      - mongo
+    networks:
+      - gift-network
+
+  web:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.web
+    ports:
+      - 5173:5173
+    env_file:
+      - client/gift-web/.env
+    depends_on:
+      - api
+    networks:
+      - gift-network
+
+networks:
+  gift-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+    driver: local
