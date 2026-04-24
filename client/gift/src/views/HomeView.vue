@@ -226,17 +226,6 @@ onMounted(async () => {
 
 <template>
   <section class="home">
-    <header class="topbar row spread">
-      <div class="eyebrow">{{ monthLabel }}</div>
-      <div class="row" style="gap: 2px">
-        <button class="icon-btn" aria-label="Search"><Icon name="search" :size="18" /></button>
-        <button class="icon-btn bell" aria-label="Notifications">
-          <Icon name="bell" :size="18" />
-          <span class="pip-dot"></span>
-        </button>
-      </div>
-    </header>
-
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error">{{ error }}</p>
     <template v-else>
@@ -376,30 +365,11 @@ onMounted(async () => {
 
 <style scoped>
 .home {
-  padding-top: 4px;
-}
-
-.topbar {
-  margin-bottom: 18px;
-  height: 32px;
-}
-
-.pip-dot {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--hot);
-}
-
-.icon-btn.bell {
-  position: relative;
+  padding-top: 0;
 }
 
 .hero-block {
-  padding: 8px 0 2px;
+  padding: 0 0 2px;
 }
 
 .hero .net-pos {

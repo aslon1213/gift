@@ -181,13 +181,6 @@ onMounted(load)
 
 <template>
   <section>
-    <header class="row spread top-row">
-      <span></span>
-      <button class="icon-btn" aria-label="Search">
-        <Icon name="search" :size="18" />
-      </button>
-    </header>
-
     <h1 class="hero">{{ t('groups.your_groups') }}</h1>
     <p class="subtitle">
       {{ t('groups.subtitle', {
@@ -441,9 +434,6 @@ onMounted(load)
 </template>
 
 <style scoped>
-.top-row {
-  margin-bottom: 22px;
-}
 .subtitle {
   font-family: var(--sans);
   font-size: 13px;

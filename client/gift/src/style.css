@@ -236,11 +236,21 @@ h3 {
 }
 
 /* ---------- Main ---------- */
+/* --tab-bar-h reserves room below content so the sticky tab-bar never covers it.
+ * Value picked to match the tab-bar's rendered height (~68px) with a bit of slack. */
+:root {
+  --tab-bar-h: 96px;
+}
+
 main {
   width: 100%;
   max-width: 620px;
   margin: 0 auto;
-  padding: 14px calc(22px + env(safe-area-inset-right)) 28px
+  /* Top: clear the iOS status bar / Dynamic Island.
+   * Bottom: clear the sticky tab-bar AND the iOS home-indicator inset. */
+  padding: calc(14px + env(safe-area-inset-top))
+    calc(22px + env(safe-area-inset-right))
+    calc(var(--tab-bar-h) + env(safe-area-inset-bottom))
     calc(22px + env(safe-area-inset-left));
   flex: 1;
 }
@@ -250,6 +260,7 @@ main.auth {
   align-items: center;
   justify-content: center;
   min-height: 100dvh;
+  /* Auth screens have no tab-bar, so normal bottom padding is fine. */
   padding: calc(28px + env(safe-area-inset-top))
     calc(22px + env(safe-area-inset-right))
     calc(28px + env(safe-area-inset-bottom))
@@ -259,7 +270,17 @@ main.auth {
 @media (min-width: 768px) {
   main {
     max-width: 720px;
-    padding: 28px 24px 40px;
+    padding: calc(28px + env(safe-area-inset-top)) 24px
+      calc(var(--tab-bar-h) + env(safe-area-inset-bottom)) 24px;
+  }
+}
+
+/* Tablet/desktop hides the tab-bar entirely (see .tab-bar media rule),
+ * so main's bottom can be normal again. */
+@media (min-width: 900px) {
+  main,
+  main.auth {
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
   }
 }
 
