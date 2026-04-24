@@ -13,6 +13,8 @@ val tauriProperties = Properties().apply {
     }
 }
 
+
+
 android {
     compileSdk = 36
     namespace = "com.aslonkhamidov.gift"
@@ -24,6 +26,18 @@ android {
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
+
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "release-key.keystore")
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS") ?: "gift"
+            keyPassword = System.getenv("KEY_PASSWORD")
+        }
+    }
+
+
     buildTypes {
         getByName("debug") {
             manifestPlaceholders["usesCleartextTraffic"] = "true"

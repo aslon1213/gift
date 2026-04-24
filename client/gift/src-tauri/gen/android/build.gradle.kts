@@ -1,19 +1,3 @@
-signingConfigs {
-    create("release") {
-        storeFile = file("../../../../../.keystore/gift.keystore")
-        storePassword = System.getenv("KEYSTORE_PASSWORD")
-        keyAlias = "gift"
-        keyPassword = System.getenv("KEY_PASSWORD")
-    }
-}   
-
-buildTypes {
-    release {
-        signingConfig = signingConfigs.getByName("release")
-    }
-}
-
-
 buildscript {
     repositories {
         google()
