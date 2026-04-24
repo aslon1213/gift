@@ -1,5 +1,16 @@
 import java.util.Properties
 
+
+// at the top, before android { } block
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(FileInputStream(keystorePropsFile))
+    println(">>> keystore.properties loaded")
+} else {
+    println(">>> keystore.properties NOT found at ${keystorePropsFile.absolutePath}")
+}
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -12,6 +23,8 @@ val tauriProperties = Properties().apply {
         propFile.inputStream().use { load(it) }
     }
 }
+
+
 
 
 
@@ -30,15 +43,14 @@ android {
 
     signingConfigs {
         create("release") {
-            val ksPath = System.getenv("KEYSTORE_PATH")
-            println(">>> KEYSTORE_PASSWORD is: ${if (ksPath != null) "SET" else "NULL"}")
-            storeFile = file("gift.keystore")
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("KEY_ALIAS") ?: "gift"
-            keyPassword = System.getenv("KEY_PASSWORD")
+            storeFile = file(keystoreProps.getProperty("storeFile") ?: "gift.keystore")
+            storePassword = keystoreProps.getProperty("storePassword")
+            keyAlias = keystoreProps.getProperty("keyAlias") ?: "gift"
+            keyPassword = keystoreProps.getProperty("keyPassword")
+            println(">>> KEYSTORE_PASSWORD is: ${if (storePassword != null) "SET" else "NULL"}")
             println(">>> KEY_PASSWORD is: ${if (keyPassword != null) "SET" else "NULL"}")
             println(">>> KEY_ALIAS is: ${if (keyAlias != null) "SET" else "NULL"}")
-            println(">>> KEYSTORE_PATH is: ${if (ksPath != null) "SET" else "NULL"}")
+            println(">>> KEYSTORE_PATH is: ${if (storeFile != null) "SET" else "NULL"}")
         }
     }
 
