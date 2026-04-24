@@ -30,10 +30,15 @@ android {
 
     signingConfigs {
         create("release") {
+            val ksPath = System.getenv("KEYSTORE_PATH")
+            println(">>> KEYSTORE_PASSWORD is: ${if (ksPath != null) "SET" else "NULL"}")
             storeFile = file("gift.keystore")
             storePassword = System.getenv("KEYSTORE_PASSWORD")
             keyAlias = System.getenv("KEY_ALIAS") ?: "gift"
             keyPassword = System.getenv("KEY_PASSWORD")
+            println(">>> KEY_PASSWORD is: ${if (keyPassword != null) "SET" else "NULL"}")
+            println(">>> KEY_ALIAS is: ${if (keyAlias != null) "SET" else "NULL"}")
+            println(">>> KEYSTORE_PATH is: ${if (ksPath != null) "SET" else "NULL"}")
         }
     }
 

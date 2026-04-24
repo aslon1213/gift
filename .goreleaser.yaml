@@ -21,8 +21,8 @@ before:
     - sh -c "cd client/gift && bun run build"
     # Android: build the Android app
     - scripts/decode-keystore.sh
-    - sh -c 'cd client/gift && bun run tauri android build'
-    - sh -c 'cd client/gift && bun run tauri android build --apk'
+    - sh -c 'cd client/gift && bun run tauri android build --aab --ci'
+    - sh -c 'cd client/gift && bun run tauri android build --apk --ci'
     # IOS
     # later
 
