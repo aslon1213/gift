@@ -3,11 +3,15 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '../api/endpoints'
 import { auth } from '../stores/auth'
+import { userStore } from '../stores/user'
+import type { CurrencyCode } from '../api/types'
+import { CURRENCY_CODES, CURRENCY_META } from '../utils/format'
 import Icon from '../components/Icon.vue'
 
 const email = ref('')
 const username = ref('')
 const password = ref('')
+const currency = ref<CurrencyCode>('UZS')
 const error = ref<string | null>(null)
 const loading = ref(false)
 const router = useRouter()
@@ -16,7 +20,7 @@ async function submit() {
   error.value = null
   loading.value = true
   try {
-    await authApi.register(email.value, username.value, password.value)
+    await authApi.register(email.value, username.value, password.value, currency.value)
     const login = await authApi.login(email.value, password.value)
     auth.setTokens(login.access_token, login.refresh_token)
     auth.setUser({
@@ -24,7 +28,8 @@ async function submit() {
       email: email.value,
       username: username.value,
     })
-    router.push('/dashboard')
+    await userStore.load()
+    router.push('/home')
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Registration failed'
   } finally {
@@ -52,6 +57,21 @@ async function submit() {
       <label class="field">
         <span>Password</span>
         <input v-model="password" type="password" required autocomplete="new-password" />
+      </label>
+      <label class="field">
+        <span>Currency</span>
+        <div class="pill-row">
+          <button
+            v-for="code in CURRENCY_CODES"
+            :key="code"
+            type="button"
+            class="pill"
+            :class="{ on: currency === code }"
+            @click="currency = code"
+          >
+            {{ CURRENCY_META[code].symbol }} {{ code }}
+          </button>
+        </div>
       </label>
       <p v-if="error" class="error">{{ error }}</p>
       <button class="btn btn-accent btn-lg btn-block" type="submit" :disabled="loading">

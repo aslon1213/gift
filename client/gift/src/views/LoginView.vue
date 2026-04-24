@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { authApi } from '../api/endpoints'
 import { auth } from '../stores/auth'
 import { server } from '../stores/server'
+import { userStore } from '../stores/user'
 import Icon from '../components/Icon.vue'
 
 const email = ref('')
@@ -20,7 +21,8 @@ async function submit() {
   try {
     const data = await authApi.login(email.value, password.value)
     auth.setTokens(data.access_token, data.refresh_token)
-    const to = (route.query.redirect as string) || '/dashboard'
+    await userStore.load()
+    const to = (route.query.redirect as string) || '/home'
     router.push(to)
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Login failed'

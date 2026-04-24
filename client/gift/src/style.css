@@ -279,11 +279,11 @@ main.auth {
 .hero {
   font-family: var(--serif);
   font-weight: 400;
-  /* Scales from ~38px on iPhone SE up to 64px on tablet+ */
-  font-size: clamp(38px, 11vw, 64px);
-  line-height: 0.95;
+  /* Smaller, more editorial scale: 28px on iPhone SE → 44px on tablet+ */
+  font-size: clamp(28px, 7.5vw, 44px);
+  line-height: 1;
   letter-spacing: -0.02em;
-  margin: 8px 0 10px;
+  margin: 6px 0 8px;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
   overflow-wrap: break-word;
@@ -297,8 +297,8 @@ main.auth {
 .display {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: clamp(32px, 9.5vw, 44px);
-  line-height: 0.95;
+  font-size: clamp(24px, 6.5vw, 34px);
+  line-height: 1;
   letter-spacing: -0.02em;
   margin: 0 0 8px;
   font-variant-numeric: tabular-nums;
@@ -313,7 +313,7 @@ main.auth {
 h1 {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 36px;
+  font-size: clamp(24px, 6vw, 32px);
   line-height: 1;
   letter-spacing: -0.01em;
   margin: 0 0 8px;
@@ -337,7 +337,7 @@ h2.section em {
 h3.serif {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 24px;
+  font-size: clamp(17px, 4.8vw, 22px);
   letter-spacing: -0.01em;
   margin: 4px 0 10px;
 }
@@ -712,9 +712,13 @@ label.field {
 }
 .stat-value {
   font-family: var(--serif);
-  font-size: 24px;
+  font-size: clamp(17px, 5vw, 22px);
   line-height: 1;
   margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 .stat-sub {
   font-family: var(--mono);

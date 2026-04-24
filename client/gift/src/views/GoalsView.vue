@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import Icon from '../components/Icon.vue'
 import { goalApi } from '../api/endpoints'
 import type { Goal } from '../api/types'
 import { toast } from '../stores/toast'
+import { userStore } from '../stores/user'
+import { currencySymbol, moneyWhole, signed } from '../utils/format'
+
+const currency = computed(() => userStore.currency.value)
+const curSymbol = computed(() => currencySymbol(currency.value))
 
 const goals = ref<Goal[]>([])
 const loading = ref(true)
@@ -69,7 +74,7 @@ async function createGoal() {
       name: newName.value.trim(),
       target_amount: newTarget.value,
       current_amount: newCurrent.value ?? 0,
-      currency: '$',
+      currency: currency.value,
       deadline: newDeadline.value ? new Date(newDeadline.value).toISOString() : '',
     })
     showCreate.value = false
@@ -92,7 +97,7 @@ async function confirmContribute() {
   contributing.value = true
   try {
     await goalApi.contribute(String(contribFor.value.id), contribAmount.value)
-    toast.flash(`+$${contribAmount.value} toward ${contribFor.value.name}`)
+    toast.flash(`${signed(contribAmount.value, currency.value)} → ${contribFor.value.name}`)
     contribFor.value = null
     contribAmount.value = null
     await load()
@@ -119,10 +124,6 @@ onMounted(load)
 
 <template>
   <section class="goals">
-    <header class="row spread top-actions">
-      <span class="eyebrow">SELF-HOST · GOALS</span>
-    </header>
-
     <h1 class="hero">
       What we're <em>saving for.</em>
     </h1>
@@ -150,11 +151,9 @@ onMounted(load)
           </div>
           <div class="goal-title">{{ g.name }}</div>
           <div class="goal-progress">
-            <div class="goal-saved">
-              <span class="cur">$</span>{{ Math.round(g.current_amount).toLocaleString() }}
-            </div>
+            <div class="goal-saved">{{ moneyWhole(g.current_amount, currency) }}</div>
             <div class="goal-target">
-              / ${{ Math.round(g.target_amount).toLocaleString() }} ·
+              / {{ moneyWhole(g.target_amount, currency) }} ·
               {{ g.target_amount ? Math.round((g.current_amount / g.target_amount) * 100) : 0 }}%
             </div>
           </div>
@@ -172,7 +171,7 @@ onMounted(load)
           </div>
           <div class="row spread goal-foot">
             <div class="goal-remaining">
-              ${{ Math.max(0, Math.round(g.target_amount - g.current_amount)).toLocaleString() }} TO GO
+              {{ moneyWhole(Math.max(0, g.target_amount - g.current_amount), currency) }} TO GO
             </div>
             <button class="contribute-btn" @click="openContribute(g)">
               + CONTRIBUTE
@@ -212,17 +211,17 @@ onMounted(load)
 
             <div class="stack-form split" style="margin-top: 14px">
               <label class="field">
-                <span>TARGET ($)</span>
+                <span>TARGET ({{ currency }})</span>
                 <input
                   v-model.number="newTarget"
                   type="number"
                   min="0"
                   step="0.01"
-                  placeholder="5000"
+                  :placeholder="curSymbol + '5000'"
                 />
               </label>
               <label class="field">
-                <span>SAVED SO FAR ($)</span>
+                <span>SAVED ({{ currency }})</span>
                 <input
                   v-model.number="newCurrent"
                   type="number"
@@ -270,13 +269,13 @@ onMounted(load)
           <div class="modal-body">
             <h1 class="display">Toward <em>{{ contribFor.name }}.</em></h1>
             <label class="field" style="margin-top: 20px">
-              <span>AMOUNT ($)</span>
+              <span>AMOUNT ({{ currency }})</span>
               <input
                 v-model.number="contribAmount"
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="100"
+                :placeholder="curSymbol + '100'"
                 autofocus
               />
             </label>
@@ -302,14 +301,6 @@ onMounted(load)
   padding: 4px 0;
 }
 
-.top-actions {
-  margin-bottom: 8px;
-}
-
-.hero {
-  font-size: 44px;
-}
-
 .goal-list {
   margin-top: 22px;
   display: flex;
@@ -332,8 +323,8 @@ onMounted(load)
 
 .goal-title {
   font-family: var(--serif);
-  font-size: 26px;
-  line-height: 1.1;
+  font-size: clamp(18px, 5vw, 22px);
+  line-height: 1.15;
   margin: 8px 0 2px;
   letter-spacing: -0.01em;
 }
@@ -343,17 +334,20 @@ onMounted(load)
   align-items: baseline;
   gap: 8px;
   margin-top: 10px;
+  min-width: 0;
 }
 
 .goal-saved {
   font-family: var(--serif);
-  font-size: 34px;
+  font-size: clamp(22px, 6.5vw, 28px);
   color: var(--ink);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .goal-saved .cur {
-  font-size: 14px;
+  font-size: clamp(12px, 3.5vw, 14px);
   color: var(--ink-mute);
 }
 

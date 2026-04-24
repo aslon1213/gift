@@ -7,7 +7,12 @@ import { budgetApi, spendingApi } from '../api/endpoints'
 import type { Budget, Spending } from '../api/types'
 import { auth } from '../stores/auth'
 import { toast } from '../stores/toast'
+import { userStore } from '../stores/user'
+import { currencySymbol, moneyWhole } from '../utils/format'
 import { sumBy } from '../utils/charts'
+
+const currency = computed(() => userStore.currency.value)
+const curSymbol = computed(() => currencySymbol(currency.value))
 
 const budgets = ref<Budget[]>([])
 const spendings = ref<Spending[]>([])
@@ -97,7 +102,7 @@ async function createBudget() {
       category: newCategory.value.trim(),
       amount: newAmount.value,
       period: newPeriod.value,
-      currency: '$',
+      currency: currency.value,
       start_date: new Date().toISOString(),
     })
     showCreate.value = false
@@ -126,10 +131,6 @@ onMounted(load)
 
 <template>
   <section class="budgets">
-    <header class="row spread top-actions">
-      <span class="eyebrow">SELF-HOST · BUDGETS</span>
-    </header>
-
     <h1 class="hero">
       Stay <em>honest.</em>
     </h1>
@@ -145,12 +146,12 @@ onMounted(load)
         <div>
           <div class="eyebrow">OVERALL</div>
           <div class="overall-money">
-            <span class="cur">$</span>{{ Math.round(used).toLocaleString() }}
-            <span class="overall-total">/ ${{ Math.round(total).toLocaleString() }}</span>
+            {{ moneyWhole(used, currency) }}
+            <span class="overall-total">/ {{ moneyWhole(total, currency) }}</span>
           </div>
           <div class="overall-sub">
             {{ total ? Math.round((used / total) * 100) : 0 }}% USED ·
-            ${{ Math.max(0, Math.round(total - used)).toLocaleString() }} LEFT
+            {{ moneyWhole(Math.max(0, total - used), currency) }} LEFT
           </div>
         </div>
         <Ring
@@ -197,7 +198,8 @@ onMounted(load)
               class="cat-sub"
               :class="{ over: spentFor(b) / b.amount > 1 }"
             >
-              ${{ Math.round(spentFor(b)) }} / ${{ Math.round(b.amount) }} ·
+              {{ moneyWhole(spentFor(b), currency) }} /
+              {{ moneyWhole(b.amount, currency) }} ·
               {{ b.amount ? Math.round((spentFor(b) / b.amount) * 100) : 0 }}% ·
               {{ b.period.toUpperCase() }}
             </div>
@@ -242,13 +244,13 @@ onMounted(load)
             </label>
 
             <label class="field" style="margin-top: 14px">
-              <span>AMOUNT (USD)</span>
+              <span>AMOUNT ({{ currency }})</span>
               <input
                 v-model.number="newAmount"
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="600"
+                :placeholder="curSymbol + '600'"
               />
             </label>
 
@@ -290,14 +292,6 @@ onMounted(load)
   padding: 4px 0;
 }
 
-.top-actions {
-  margin-bottom: 8px;
-}
-
-.hero {
-  font-size: 44px;
-}
-
 .lead {
   font-size: 13px;
   color: var(--ink-soft);
@@ -319,18 +313,23 @@ onMounted(load)
 
 .overall-money {
   font-family: var(--serif);
-  font-size: 36px;
+  font-size: clamp(22px, 6.5vw, 30px);
   line-height: 1;
   margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .overall-money .cur {
-  font-size: 16px;
+  font-size: clamp(12px, 3.5vw, 14px);
   color: var(--ink-mute);
 }
 
 .overall-total {
-  font-size: 16px;
+  font-size: clamp(12px, 3.5vw, 14px);
   color: var(--ink-mute);
 }
 

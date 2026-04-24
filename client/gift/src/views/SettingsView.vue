@@ -87,23 +87,10 @@ async function signOut() {
   router.push('/login')
 }
 
-function confirmReset() {
-  if (
-    confirm(
-      'Reset the database? This is irreversible — all groups, spendings, budgets, goals will be lost.',
-    )
-  ) {
-    alert('Not yet wired — endpoint forthcoming.')
-  }
-}
 </script>
 
 <template>
   <section class="settings">
-    <header class="row spread top-actions">
-      <span class="eyebrow">SELF-HOST · ADMIN</span>
-    </header>
-
     <h1 class="hero">
       Your <em>server.</em>
     </h1>
@@ -181,20 +168,13 @@ function confirmReset() {
         <Icon name="chevR" :size="14" class="r-chev" />
       </button>
 
-      <div class="section-label eyebrow danger">DANGER ZONE</div>
+      <div class="section-label eyebrow">DATA</div>
       <button class="setting-row">
         <Icon name="arrowDown" :size="18" class="r-icon" />
         <span class="r-label">Export all data</span>
         <span class="r-value">.json · .csv</span>
         <Icon name="chevR" :size="14" class="r-chev" />
       </button>
-      <button class="setting-row danger" @click="confirmReset">
-        <Icon name="close" :size="18" class="r-icon" />
-        <span class="r-label">Reset database</span>
-        <span class="r-value">irreversible</span>
-        <Icon name="chevR" :size="14" class="r-chev" />
-      </button>
-
       <div class="foot center">
         <div>
           gift · self-hosted · MIT ·
@@ -211,14 +191,6 @@ function confirmReset() {
 <style scoped>
 .settings {
   padding: 4px 0;
-}
-
-.top-actions {
-  margin-bottom: 8px;
-}
-
-.hero {
-  font-size: 44px;
 }
 
 .identity {
@@ -249,17 +221,25 @@ function confirmReset() {
 
 .id-host {
   font-family: var(--serif);
-  font-size: 26px;
-  line-height: 1.1;
+  font-size: clamp(18px, 5vw, 22px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .id-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px solid rgba(245, 241, 232, 0.1);
+}
+
+.id-stats > div {
+  min-width: 0;
 }
 
 .id-stat-label {
@@ -271,8 +251,13 @@ function confirmReset() {
 
 .id-stat-value {
   font-family: var(--serif);
-  font-size: 20px;
+  font-size: clamp(15px, 4.5vw, 18px);
   margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .stats {
@@ -284,10 +269,6 @@ function confirmReset() {
 
 .section-label {
   margin: 28px 0 4px;
-}
-
-.section-label.danger {
-  color: var(--hot);
 }
 
 .setting-row {
@@ -305,16 +286,8 @@ function confirmReset() {
   color: var(--ink);
 }
 
-.setting-row.danger {
-  color: var(--hot);
-}
-
 .r-icon {
   color: var(--ink-soft);
-}
-
-.setting-row.danger .r-icon {
-  color: var(--hot);
 }
 
 .r-label {

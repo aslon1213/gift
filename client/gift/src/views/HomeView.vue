@@ -7,14 +7,9 @@ import { auth } from '../stores/auth'
 import Icon from '../components/Icon.vue'
 import Sparkline from '../components/Sparkline.vue'
 import type { IconName } from '../components/icons'
-import { signed } from '../utils/format'
+import { money, moneyWhole, signed, signedWhole } from '../utils/format'
 import { lastNDays, formatDay, groupBy, sumBy } from '../utils/charts'
-
-// Signed whole-number amount, e.g. +$1,513 or −$240.
-function signedWhole(n: number, cur = '$'): string {
-  const sign = n >= 0 ? '+' : '−'
-  return sign + cur + Math.abs(Math.round(n)).toLocaleString('en-US')
-}
+import { userStore } from '../stores/user'
 
 const router = useRouter()
 
@@ -28,9 +23,8 @@ const monthLabel = computed(() =>
   new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase(),
 )
 
-const currency = computed(
-  () => spendings.value[0]?.currency ?? incomes.value[0]?.currency ?? '$',
-)
+// User's preferred currency (USD/EUR/UZS) drives all aggregate amounts on this page.
+const currency = computed(() => userStore.currency.value)
 
 const inMonth = (d: Date) => {
   const now = new Date()
@@ -232,9 +226,7 @@ onMounted(async () => {
 <template>
   <section class="home">
     <header class="topbar row spread">
-      <div class="eyebrow">
-        {{ monthLabel }} · <b>you@home.lan</b>
-      </div>
+      <div class="eyebrow">{{ monthLabel }}</div>
       <div class="row" style="gap: 2px">
         <button class="icon-btn" aria-label="Search"><Icon name="search" :size="18" /></button>
         <button class="icon-btn bell" aria-label="Notifications">
@@ -263,7 +255,7 @@ onMounted(async () => {
           <span class="nw-change">▲ {{ signedWhole(netWorth30dDelta, currency) }}</span>
         </div>
         <div class="money money-big inverse">
-          <span class="cur">{{ currency }}</span><span class="int">{{ Math.floor(Math.abs(netWorth)).toLocaleString() }}</span><span class="decimals">.{{ (Math.abs(netWorth) % 1).toFixed(2).slice(2) }}</span>
+          {{ moneyWhole(netWorth, currency) }}
         </div>
         <div class="spark">
           <Sparkline :data="spark" :width="314" :height="52" stroke="#F5F1E8" />
@@ -271,11 +263,11 @@ onMounted(async () => {
         <div class="nw-stats">
           <div>
             <div class="nw-stat-label">IN</div>
-            <div class="nw-stat-value nw-in">{{ currency }}{{ Math.round(monthIn).toLocaleString() }}</div>
+            <div class="nw-stat-value nw-in">{{ moneyWhole(monthIn, currency) }}</div>
           </div>
           <div>
             <div class="nw-stat-label">OUT</div>
-            <div class="nw-stat-value nw-out">{{ currency }}{{ Math.round(monthOut).toLocaleString() }}</div>
+            <div class="nw-stat-value nw-out">{{ moneyWhole(monthOut, currency) }}</div>
           </div>
           <div>
             <div class="nw-stat-label">NET</div>
@@ -320,9 +312,7 @@ onMounted(async () => {
                 <div class="cat-fill" :style="{ width: c.pct * 100 + '%' }"></div>
               </div>
             </div>
-            <div class="cat-amt">
-              <span class="cur">{{ currency }}</span>{{ Math.round(c.amt).toLocaleString() }}
-            </div>
+            <div class="cat-amt">{{ moneyWhole(c.amt, currency) }}</div>
           </div>
         </div>
       </div>
@@ -373,16 +363,11 @@ onMounted(async () => {
                 {{ e.when }}<span v-if="e.group" class="group-tag"> · {{ e.group.toUpperCase() }}</span>
               </div>
             </div>
-            <div class="figure">
-              <span class="cur">{{ currency }}</span>{{ e.amt.toFixed(2) }}
-            </div>
+            <div class="figure">{{ money(e.amt, currency) }}</div>
           </div>
         </div>
       </div>
 
-      <div class="foot">
-        ↳ gift v0.4.2 · self-hosted on <b>home.lan:4747</b>
-      </div>
     </template>
   </section>
 </template>
@@ -442,11 +427,11 @@ onMounted(async () => {
 }
 
 .net-card .money-big {
-  /* Scales 40 → 56 depending on viewport; never overflows the ink card */
-  font-size: clamp(40px, 12vw, 56px);
+  /* Compact: 28px on iPhone SE → 40px on tablet+ */
+  font-size: clamp(28px, 8.5vw, 40px);
   line-height: 1;
   letter-spacing: -0.02em;
-  margin-top: 8px;
+  margin-top: 6px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
@@ -462,7 +447,7 @@ onMounted(async () => {
 }
 
 .net-card .money-big .cur {
-  font-size: clamp(16px, 5vw, 22px);
+  font-size: clamp(12px, 3.5vw, 16px);
   vertical-align: top;
   margin-right: 2px;
   color: rgba(245, 241, 232, 0.55);
@@ -471,7 +456,7 @@ onMounted(async () => {
 }
 
 .net-card .money-big .decimals {
-  font-size: clamp(20px, 6.5vw, 28px);
+  font-size: clamp(14px, 4.5vw, 20px);
   color: rgba(245, 241, 232, 0.6);
 }
 
@@ -480,8 +465,8 @@ onMounted(async () => {
 }
 
 .nw-stats {
-  margin-top: 12px;
-  padding-top: 14px;
+  margin-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid rgba(245, 241, 232, 0.1);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -501,7 +486,7 @@ onMounted(async () => {
 
 .nw-stat-value {
   font-family: var(--serif);
-  font-size: clamp(15px, 5vw, 20px);
+  font-size: clamp(13px, 3.8vw, 16px);
   margin-top: 2px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

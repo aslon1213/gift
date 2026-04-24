@@ -14,9 +14,19 @@ import type {
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<LoginResponse>('/auth/login', { email, password }, { auth: false }),
-  register: (email: string, username: string, password: string) =>
-    api.post<RegisterResponse>('/auth/register', { email, username, password }, { auth: false }),
+  register: (
+    email: string,
+    username: string,
+    password: string,
+    currency: 'USD' | 'EUR' | 'UZS' = 'UZS',
+  ) =>
+    api.post<RegisterResponse>(
+      '/auth/register',
+      { email, username, password, currency },
+      { auth: false },
+    ),
   logout: () => api.post<null>('/auth/logout'),
+  me: () => api.get<User>('/auth/me'),
 }
 
 // Users endpoints return {data: user} (no status/message wrapper).
@@ -133,4 +143,31 @@ export const goalApi = {
 
 export const settingsApi = {
   get: () => api.get<SettingsInfo>('/settings', RAW),
+  // Downloads an export — JSON as a .json file, CSV as a .zip of per-collection CSVs.
+  // Uses fetch directly because the response is binary/text, not a wrapped JSON payload.
+  export: async (format: 'json' | 'csv') => {
+    const { server } = await import('../stores/server')
+    const { auth } = await import('../stores/auth')
+    const res = await fetch(`${server.baseUrl.value}/api/v1/settings/export_data?format=${format}`, {
+      method: 'POST',
+      headers: auth.accessToken.value
+        ? { Authorization: `Bearer ${auth.accessToken.value}` }
+        : undefined,
+    })
+    if (!res.ok) {
+      throw new Error(`Export failed (${res.status})`)
+    }
+    const blob = await res.blob()
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')
+    const ext = format === 'csv' ? 'zip' : 'json'
+    const fname = `gift-export-${stamp}.${ext}`
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fname
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  },
 }

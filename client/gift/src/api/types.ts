@@ -20,12 +20,15 @@ export interface RegisterResponse {
   username: string
 }
 
+export type CurrencyCode = 'USD' | 'EUR' | 'UZS'
+
 export interface User {
   _id?: string
   id?: string
   email: string
   name: string
   balance?: number
+  currency?: CurrencyCode
   created_at?: string
   updated_at?: string
 }
@@ -114,5 +117,7 @@ export interface SettingsInfo {
     id: string
     email: string
     name: string
+    currency: CurrencyCode
+    balance: number
   }
 }

@@ -7,17 +7,9 @@ import { toast } from '../stores/toast'
 import Icon from '../components/Icon.vue'
 import Avatar from '../components/Avatar.vue'
 import type { IconName } from '../components/icons'
-import { colorForId } from '../utils/format'
+import { colorForId, moneyWhole, signedWhole } from '../utils/format'
 import { sumBy } from '../utils/charts'
-
-// Whole-dollar money formatters — avoid `.00` cents on mobile so big numbers fit in the card.
-function moneyWhole(n: number, cur = '$'): string {
-  return (n < 0 ? '−' : '') + cur + Math.abs(Math.round(n)).toLocaleString('en-US')
-}
-function signedWhole(n: number, cur = '$'): string {
-  const sign = n >= 0 ? '+' : '−'
-  return sign + cur + Math.abs(Math.round(n)).toLocaleString('en-US')
-}
+import { userStore } from '../stores/user'
 
 const groups = ref<Group[]>([])
 const groupSpendings = ref<Record<string, Spending[]>>({})
@@ -110,9 +102,11 @@ function groupBalance(g: Group): number {
   return paid - per
 }
 
-function groupCurrency(g: Group): string {
-  const id = String(g._id ?? g.id)
-  return (groupSpendings.value[id] ?? [])[0]?.currency ?? '$'
+// Aggregate currency for every rendered amount on this page = the user's preferred currency.
+const preferredCurrency = computed(() => userStore.currency.value)
+
+function groupCurrency(_g: Group): string {
+  return preferredCurrency.value
 }
 
 const summary = computed(() => {
@@ -127,8 +121,7 @@ const summary = computed(() => {
     (s) => s.amount,
   )
   const nets = groups.value.reduce((a, g) => a + groupBalance(g), 0)
-  const cur = allSp[0]?.currency ?? '$'
-  return { tracked, thisMonth, nets, cur }
+  return { tracked, thisMonth, nets, cur: preferredCurrency.value }
 })
 
 // Create flow
@@ -182,29 +175,16 @@ async function createGroup() {
   }
 }
 
-async function remove(id: string) {
-  if (!confirm('Delete this group?')) return
-  try {
-    await groupApi.remove(id)
-    await load()
-    toast.flash('Group deleted')
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Delete failed'
-  }
-}
-
-const myId = auth.userIdFromToken() ?? ''
-
 onMounted(load)
 </script>
 
 <template>
   <section>
     <header class="row spread top-row">
-      <div class="eyebrow">
-        SIGNED IN · <b>{{ memberCache[myId]?.email || memberCache[myId]?.name || 'you' }}</b>
-      </div>
-      <button class="icon-btn"><Icon name="search" :size="18" /></button>
+      <span></span>
+      <button class="icon-btn" aria-label="Search">
+        <Icon name="search" :size="18" />
+      </button>
     </header>
 
     <h1 class="hero">Your <em>groups.</em></h1>
@@ -216,19 +196,19 @@ onMounted(load)
 
     <!-- Summary strip -->
     <div v-if="groups.length" class="card-ink summary-strip">
-      <div>
-        <div class="s-label">NET</div>
-        <div class="s-val" :style="{ color: summary.nets >= 0 ? 'var(--moss)' : 'var(--hot)' }">
+      <div class="s-row">
+        <span class="s-label">NET</span>
+        <span class="s-val" :style="{ color: summary.nets >= 0 ? 'var(--moss)' : 'var(--hot)' }">
           {{ signedWhole(summary.nets, summary.cur) }}
-        </div>
+        </span>
       </div>
-      <div>
-        <div class="s-label">TRACKED</div>
-        <div class="s-val">{{ moneyWhole(summary.tracked, summary.cur) }}</div>
+      <div class="s-row">
+        <span class="s-label">TRACKED</span>
+        <span class="s-val">{{ moneyWhole(summary.tracked, summary.cur) }}</span>
       </div>
-      <div>
-        <div class="s-label">THIS MO</div>
-        <div class="s-val">{{ moneyWhole(summary.thisMonth, summary.cur) }}</div>
+      <div class="s-row">
+        <span class="s-label">THIS MONTH</span>
+        <span class="s-val">{{ moneyWhole(summary.thisMonth, summary.cur) }}</span>
       </div>
     </div>
 
@@ -285,14 +265,6 @@ onMounted(load)
               </div>
             </div>
           </router-link>
-          <button
-            v-if="g.owner_id === myId"
-            class="linklike danger-link"
-            @click="remove(String(g._id ?? g.id))"
-            aria-label="Delete group"
-          >
-            <Icon name="close" :size="14" />
-          </button>
         </div>
       </div>
 
@@ -304,8 +276,6 @@ onMounted(load)
         <Icon name="plus" :size="16" /> Create a new group
       </button>
     </template>
-
-    <div class="foot">↳ gift v0.4.2 · self-hosted</div>
 
     <!-- Create modal -->
     <Teleport to="body">
@@ -479,37 +449,43 @@ onMounted(load)
 
 .summary-strip {
   margin-top: 22px;
-  padding: clamp(14px, 4.2vw, 16px) clamp(14px, 4.5vw, 18px);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(8px, 3vw, 14px);
+  padding: clamp(14px, 4.2vw, 18px) clamp(16px, 4.5vw, 20px);
+  display: flex;
+  flex-direction: column;
   border-radius: var(--r-lg);
   overflow: hidden;
 }
-.summary-strip > div {
-  min-width: 0;
+.summary-strip .s-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
 }
-.summary-strip > div + div {
-  border-left: 1px solid rgba(245, 241, 232, 0.12);
-  padding-left: clamp(8px, 3vw, 14px);
+.summary-strip .s-row + .s-row {
+  border-top: 1px solid rgba(245, 241, 232, 0.1);
+}
+.summary-strip .s-row:first-child {
+  padding-top: 2px;
+}
+.summary-strip .s-row:last-child {
+  padding-bottom: 2px;
 }
 .summary-strip .s-label {
   font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: rgba(245, 241, 232, 0.5);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: rgba(245, 241, 232, 0.55);
+  flex-shrink: 0;
 }
 .summary-strip .s-val {
   font-family: var(--serif);
-  /* Scales from 15px on iPhone SE up to 22px on tablet+ */
-  font-size: clamp(15px, 5.5vw, 22px);
-  margin-top: 2px;
+  font-size: clamp(16px, 5vw, 22px);
   color: var(--paper);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
+  text-align: right;
+  min-width: 0;
 }
 
 .section-head {
@@ -572,8 +548,8 @@ onMounted(load)
 }
 .group-card .body .name {
   font-family: var(--serif);
-  font-size: clamp(17px, 5.5vw, 22px);
-  line-height: 1.1;
+  font-size: clamp(15px, 4.2vw, 18px);
+  line-height: 1.15;
   color: var(--ink);
   letter-spacing: -0.01em;
   /* Long group names truncate cleanly instead of pushing the balance off-card */

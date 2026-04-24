@@ -334,9 +334,6 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="foot">
-          ↳ gift · self-hosted on <b>{{ activeGroup.name }}</b>
-        </div>
       </template>
     </template>
   </section>
