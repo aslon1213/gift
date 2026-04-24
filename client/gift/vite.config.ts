@@ -28,5 +28,14 @@ export default defineConfig(async () => ({
       // 3. tell Vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
+    allowedHosts: process.env.ALLOWED_HOSTS 
+    ? process.env.ALLOWED_HOSTS.split(",") 
+    : [],
   },
+  preview: {
+    allowedHosts: process.env.ALLOWED_HOSTS 
+      ? process.env.ALLOWED_HOSTS.split(",") 
+      : [],
+  },
+
 }));
