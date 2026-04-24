@@ -1,8 +1,6 @@
 import java.util.Properties
-import java.util.Properties
 import java.io.FileInputStream
 
-// at the top, before android { } block
 val keystorePropsFile = rootProject.file("keystore.properties")
 val keystoreProps = Properties()
 if (keystorePropsFile.exists()) {
@@ -25,10 +23,6 @@ val tauriProperties = Properties().apply {
     }
 }
 
-
-
-
-
 android {
     compileSdk = 36
     namespace = "com.aslonkhamidov.gift"
@@ -41,20 +35,18 @@ android {
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
 
-
     signingConfigs {
         create("release") {
             storeFile = file(keystoreProps.getProperty("storeFile") ?: "gift.keystore")
             storePassword = keystoreProps.getProperty("storePassword")
             keyAlias = keystoreProps.getProperty("keyAlias") ?: "gift"
             keyPassword = keystoreProps.getProperty("keyPassword")
-            println(">>> KEYSTORE_PASSWORD is: ${if (storePassword != null) "SET" else "NULL"}")
-            println(">>> KEY_PASSWORD is: ${if (keyPassword != null) "SET" else "NULL"}")
-            println(">>> KEY_ALIAS is: ${if (keyAlias != null) "SET" else "NULL"}")
-            println(">>> KEYSTORE_PATH is: ${if (storeFile != null) "SET" else "NULL"}")
+            println(">>> storePassword: ${if (storePassword != null) "SET" else "NULL"}")
+            println(">>> keyPassword: ${if (keyPassword != null) "SET" else "NULL"}")
+            println(">>> keyAlias: ${if (keyAlias != null) "SET" else "NULL"}")
+            println(">>> storeFile: ${storeFile?.absolutePath}")
         }
     }
-
 
     buildTypes {
         getByName("debug") {
@@ -62,13 +54,15 @@ android {
             isDebuggable = true
             isJniDebuggable = true
             isMinifyEnabled = false
-            packaging {                jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
+            packaging {
+                jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
                 jniLibs.keepDebugSymbols.add("*/armeabi-v7a/*.so")
                 jniLibs.keepDebugSymbols.add("*/x86/*.so")
                 jniLibs.keepDebugSymbols.add("*/x86_64/*.so")
             }
         }
         getByName("release") {
+            signingConfig = signingConfigs.getByName("release")  // ← THIS WAS MISSING
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
