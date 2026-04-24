@@ -5,11 +5,11 @@ version: 2
 
 project_name: gift
 
-env:
-  - KEYSTORE_PASSWORD={{ .Env.KEYSTORE_PASSWORD }}
-  - KEY_PASSWORD={{ .Env.KEY_PASSWORD }}
-  - KEY_ALIAS={{ .Env.KEY_ALIAS }}
-  - KEYSTORE_PATH={{ .Env.KEYSTORE_PATH }}
+# env:
+#   - KEYSTORE_PASSWORD={{ .Env.KEYSTORE_PASSWORD }}
+#   - KEY_PASSWORD={{ .Env.KEY_PASSWORD }}
+#   - KEY_ALIAS={{ .Env.KEY_ALIAS }}
+#   - KEYSTORE_PATH={{ .Env.KEYSTORE_PATH }}
 
 before:
   hooks:
