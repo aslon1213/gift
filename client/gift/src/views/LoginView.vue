@@ -5,6 +5,7 @@ import { authApi } from '../api/endpoints'
 import { auth } from '../stores/auth'
 import { server } from '../stores/server'
 import { userStore } from '../stores/user'
+import { t } from '../i18n'
 import Icon from '../components/Icon.vue'
 
 const email = ref('')
@@ -38,28 +39,28 @@ async function submit() {
       <span class="dot"></span>
       <span>self-hosted · v0.4.2</span>
     </div>
-    <h1>Welcome <em>back.</em></h1>
+    <h1>{{ t('login.welcome_back') }}</h1>
     <form @submit.prevent="submit">
       <label class="field">
-        <span>Email</span>
+        <span>{{ t('common.email') }}</span>
         <input v-model="email" type="email" required autocomplete="email" />
       </label>
       <label class="field">
-        <span>Password</span>
+        <span>{{ t('common.password') }}</span>
         <input v-model="password" type="password" required autocomplete="current-password" />
       </label>
       <p v-if="error" class="error">{{ error }}</p>
       <button class="btn btn-primary btn-lg btn-block" type="submit" :disabled="loading">
-        {{ loading ? 'Signing in…' : 'Sign in' }}
+        {{ loading ? t('login.signing_in') : t('login.sign_in') }}
         <Icon v-if="!loading" name="arrowRight" :size="16" />
       </button>
     </form>
     <p class="muted">
-      No account? <router-link to="/register">Create one</router-link>
+      {{ t('login.no_account') }} <router-link to="/register">{{ t('login.create_one') }}</router-link>
     </p>
     <p class="muted small server-line">
-      Server: <span class="server-url">{{ server.baseUrl.value }}</span> ·
-      <router-link to="/setup">change</router-link>
+      {{ t('login.server_label') }} <span class="server-url">{{ server.baseUrl.value }}</span> ·
+      <router-link to="/setup">{{ t('login.change') }}</router-link>
     </p>
   </div>
 </template>

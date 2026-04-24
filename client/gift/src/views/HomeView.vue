@@ -10,6 +10,7 @@ import type { IconName } from '../components/icons'
 import { money, moneyWhole, signed, signedWhole } from '../utils/format'
 import { lastNDays, formatDay, groupBy, sumBy } from '../utils/charts'
 import { userStore } from '../stores/user'
+import { t } from '../i18n'
 
 const router = useRouter()
 
@@ -236,22 +237,22 @@ onMounted(async () => {
       </div>
     </header>
 
-    <p v-if="loading" class="muted">Loading…</p>
+    <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error">{{ error }}</p>
     <template v-else>
       <!-- Hero -->
       <div class="hero-block">
-        <p class="eyebrow">GOOD AFTERNOON</p>
+        <p class="eyebrow">{{ t('home.good_afternoon') }}</p>
         <h1 class="hero">
-          Net for {{ monthLabel.split(' ')[0].slice(0, 3) }}<br />
-          is <em class="net-pos">{{ signedWhole(monthNet, currency) }}</em>
+          {{ t('home.net_for_month', { month: monthLabel.split(' ')[0].slice(0, 3) }) }}<br />
+          <em class="net-pos">{{ t('home.is_amount', { amount: signedWhole(monthNet, currency) }) }}</em>
         </h1>
       </div>
 
       <!-- Net worth card -->
       <div class="card-ink net-card">
         <div class="row spread">
-          <span class="nw-label">NET WORTH · 30D</span>
+          <span class="nw-label">{{ t('home.net_worth_30d') }}</span>
           <span class="nw-change">▲ {{ signedWhole(netWorth30dDelta, currency) }}</span>
         </div>
         <div class="money money-big inverse">
@@ -262,15 +263,15 @@ onMounted(async () => {
         </div>
         <div class="nw-stats">
           <div>
-            <div class="nw-stat-label">IN</div>
+            <div class="nw-stat-label">{{ t('home.in') }}</div>
             <div class="nw-stat-value nw-in">{{ moneyWhole(monthIn, currency) }}</div>
           </div>
           <div>
-            <div class="nw-stat-label">OUT</div>
+            <div class="nw-stat-label">{{ t('home.out') }}</div>
             <div class="nw-stat-value nw-out">{{ moneyWhole(monthOut, currency) }}</div>
           </div>
           <div>
-            <div class="nw-stat-label">NET</div>
+            <div class="nw-stat-label">{{ t('home.net') }}</div>
             <div class="nw-stat-value nw-net">{{ signedWhole(monthNet, currency) }}</div>
           </div>
         </div>
@@ -279,20 +280,20 @@ onMounted(async () => {
       <!-- Quick actions -->
       <div class="quick-row">
         <button class="btn btn-accent btn-lg" @click="goSpending">
-          <Icon name="plus" :size="18" /> Spending
+          <Icon name="plus" :size="18" /> {{ t('home.spending') }}
         </button>
         <button class="btn btn-secondary btn-lg" @click="goIncome">
-          <Icon name="arrowDown" :size="18" /> Income
+          <Icon name="arrowDown" :size="18" /> {{ t('home.income') }}
         </button>
       </div>
 
       <!-- Top categories -->
       <div v-if="topCats.length" class="section-block">
         <div class="row spread section-head">
-          <span class="eyebrow">WHERE IT WENT · {{ monthLabel.split(' ')[0].slice(0, 3).toUpperCase() }}</span>
-          <span class="eyebrow">VIEW ALL →</span>
+          <span class="eyebrow">{{ t('home.where_it_went') }} · {{ monthLabel.split(' ')[0].slice(0, 3).toUpperCase() }}</span>
+          <span class="eyebrow">{{ t('home.view_all') }}</span>
         </div>
-        <h3 class="serif">Top <em>categories.</em></h3>
+        <h3 class="serif">{{ t('home.top_categories') }}</h3>
         <div>
           <div
             v-for="(c, i) in topCats"
@@ -320,10 +321,10 @@ onMounted(async () => {
       <!-- Shared with others -->
       <div v-if="sharedGroups.length" class="section-block">
         <div class="row spread section-head">
-          <span class="eyebrow">SHARED · {{ sharedGroups.length }} GROUPS</span>
-          <button class="linklike" @click="goGroups">VIEW ALL →</button>
+          <span class="eyebrow">{{ t('home.shared_groups', { n: sharedGroups.length }) }}</span>
+          <button class="linklike" @click="goGroups">{{ t('home.view_all') }}</button>
         </div>
-        <h3 class="serif">Split <em class="split-em">with others.</em></h3>
+        <h3 class="serif">{{ t('home.split_with_others') }}</h3>
         <div class="shared-list">
           <button
             v-for="g in sharedGroups"
@@ -335,7 +336,8 @@ onMounted(async () => {
             <div>
               <div class="shared-name">{{ g.name }}</div>
               <div class="shared-sub">
-                {{ g.members }} MEMBERS · {{ g.you >= 0 ? 'YOU ARE OWED' : 'YOU OWE' }}
+                {{ g.members }} {{ t('home.members') }} ·
+                {{ g.you >= 0 ? t('home.you_are_owed') : t('home.you_owe') }}
               </div>
             </div>
             <div class="shared-bal" :style="{ color: g.you >= 0 ? 'var(--moss)' : 'var(--hot)' }">
@@ -347,8 +349,8 @@ onMounted(async () => {
 
       <!-- Recent activity -->
       <div v-if="recent.length" class="section-block">
-        <span class="eyebrow">ACTIVITY · ALL ACCOUNTS</span>
-        <h3 class="serif">Recent <em>movements.</em></h3>
+        <span class="eyebrow">{{ t('home.activity') }}</span>
+        <h3 class="serif">{{ t('home.recent_movements') }}</h3>
         <div>
           <div
             v-for="(e, i) in recent"

@@ -10,6 +10,7 @@ import { toast } from '../stores/toast'
 import { userStore } from '../stores/user'
 import { currencySymbol, moneyWhole } from '../utils/format'
 import { sumBy } from '../utils/charts'
+import { t } from '../i18n'
 
 const currency = computed(() => userStore.currency.value)
 const curSymbol = computed(() => currencySymbol(currency.value))
@@ -131,27 +132,23 @@ onMounted(load)
 
 <template>
   <section class="budgets">
-    <h1 class="hero">
-      Stay <em>honest.</em>
-    </h1>
-    <p class="lead">
-      Category caps for your spending. We'll nudge when you're burning fast.
-    </p>
+    <h1 class="hero">{{ t('budgets.stay_honest') }}</h1>
+    <p class="lead">{{ t('budgets.lead') }}</p>
 
-    <p v-if="loading" class="muted">Loading…</p>
+    <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error">{{ error }}</p>
 
     <template v-else>
       <div v-if="budgets.length" class="overall">
         <div>
-          <div class="eyebrow">OVERALL</div>
+          <div class="eyebrow">{{ t('budgets.overall') }}</div>
           <div class="overall-money">
             {{ moneyWhole(used, currency) }}
             <span class="overall-total">/ {{ moneyWhole(total, currency) }}</span>
           </div>
           <div class="overall-sub">
-            {{ total ? Math.round((used / total) * 100) : 0 }}% USED ·
-            {{ moneyWhole(Math.max(0, total - used), currency) }} LEFT
+            {{ total ? Math.round((used / total) * 100) : 0 }}% {{ t('budgets.used') }} ·
+            {{ moneyWhole(Math.max(0, total - used), currency) }} {{ t('budgets.left') }}
           </div>
         </div>
         <Ring
@@ -163,7 +160,7 @@ onMounted(load)
         />
       </div>
 
-      <div class="section-head eyebrow">BY CATEGORY</div>
+      <div class="section-head eyebrow">{{ t('budgets.by_category') }}</div>
 
       <div v-if="budgets.length" class="cat-list">
         <div
@@ -192,7 +189,7 @@ onMounted(load)
           <div>
             <div class="cat-label">
               {{ b.category }}
-              <span v-if="spentFor(b) / b.amount > 1" class="over-tag">OVER</span>
+              <span v-if="spentFor(b) / b.amount > 1" class="over-tag">{{ t('budgets.over') }}</span>
             </div>
             <div
               class="cat-sub"
@@ -214,10 +211,10 @@ onMounted(load)
         </div>
       </div>
 
-      <div v-else class="empty">No budgets yet. Create your first cap.</div>
+      <div v-else class="empty">{{ t('common.no_data') }}</div>
 
       <button class="dashed" @click="openCreate">
-        <Icon name="plus" :size="14" /> New budget category
+        <Icon name="plus" :size="14" /> {{ t('budgets.new_category') }}
       </button>
     </template>
 
@@ -227,24 +224,24 @@ onMounted(load)
         <div class="modal">
           <div class="modal-header">
             <button class="linklike" @click="showCreate = false">
-              <Icon name="close" :size="16" /> CANCEL
+              <Icon name="close" :size="16" /> {{ t('common.cancel') }}
             </button>
-            <div class="eyebrow">NEW BUDGET</div>
+            <div class="eyebrow">{{ t('budgets.new_category') }}</div>
           </div>
 
           <div class="modal-body">
-            <h1 class="display">Cap a <em>category.</em></h1>
+            <h1 class="display">{{ t('budgets.cap_a_category') }}</h1>
 
             <label class="field" style="margin-top: 20px">
-              <span>CATEGORY</span>
+              <span>{{ t('budgets.category') }}</span>
               <input
                 v-model="newCategory"
-                placeholder="Food, Travel, Rent…"
+                :placeholder="t('budgets.category_placeholder')"
               />
             </label>
 
             <label class="field" style="margin-top: 14px">
-              <span>AMOUNT ({{ currency }})</span>
+              <span>{{ t('common.amount') }} ({{ currency }})</span>
               <input
                 v-model.number="newAmount"
                 type="number"
@@ -255,7 +252,7 @@ onMounted(load)
             </label>
 
             <label class="field" style="margin-top: 14px">
-              <span>PERIOD</span>
+              <span>{{ t('budgets.period') }}</span>
               <div style="display: flex; gap: 6px">
                 <button
                   v-for="p in ['weekly', 'monthly', 'trip', 'yearly']"
@@ -265,7 +262,7 @@ onMounted(load)
                   :class="{ on: newPeriod === p }"
                   @click="newPeriod = p"
                 >
-                  {{ p }}
+                  {{ t('budgets.period.' + p) }}
                 </button>
               </div>
             </label>
@@ -277,7 +274,7 @@ onMounted(load)
                 @click="createBudget"
               >
                 <Icon name="check" :size="18" />
-                {{ creating ? 'Saving…' : 'Create budget' }}
+                {{ creating ? t('common.loading') : t('budgets.create_budget') }}
               </button>
             </div>
           </div>

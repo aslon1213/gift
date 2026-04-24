@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { auth } from './stores/auth'
+import { t } from './i18n'
 import Icon from './components/Icon.vue'
 import Toast from './components/Toast.vue'
 </script>
@@ -14,23 +15,23 @@ import Toast from './components/Toast.vue'
       <div class="tab-bar-inner">
         <router-link to="/home">
           <Icon name="home" :size="20" />
-          <span>Home</span>
+          <span>{{ t('nav.home') }}</span>
         </router-link>
         <router-link to="/groups">
           <Icon name="people" :size="20" />
-          <span>Groups</span>
+          <span>{{ t('nav.groups') }}</span>
         </router-link>
         <router-link to="/budgets">
           <Icon name="gauge" :size="20" />
-          <span>Budget</span>
+          <span>{{ t('nav.budget') }}</span>
         </router-link>
         <router-link to="/goals">
           <Icon name="target" :size="20" />
-          <span>Goals</span>
+          <span>{{ t('nav.goals') }}</span>
         </router-link>
         <router-link to="/settings">
           <Icon name="settings" :size="20" />
-          <span>Server</span>
+          <span>{{ t('nav.server') }}</span>
         </router-link>
       </div>
     </nav>

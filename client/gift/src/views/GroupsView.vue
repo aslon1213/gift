@@ -10,6 +10,7 @@ import type { IconName } from '../components/icons'
 import { colorForId, moneyWhole, signedWhole } from '../utils/format'
 import { sumBy } from '../utils/charts'
 import { userStore } from '../stores/user'
+import { t } from '../i18n'
 
 const groups = ref<Group[]>([])
 const groupSpendings = ref<Record<string, Spending[]>>({})
@@ -187,39 +188,40 @@ onMounted(load)
       </button>
     </header>
 
-    <h1 class="hero">Your <em>groups.</em></h1>
+    <h1 class="hero">{{ t('groups.your_groups') }}</h1>
     <p class="subtitle">
-      {{ groups.length }} active · {{
-        Object.values(groupSpendings).reduce((a, b) => a + b.length, 0)
-      }} spendings tracked
+      {{ t('groups.subtitle', {
+        active: groups.length,
+        count: Object.values(groupSpendings).reduce((a, b) => a + b.length, 0),
+      }) }}
     </p>
 
     <!-- Summary strip -->
     <div v-if="groups.length" class="card-ink summary-strip">
       <div class="s-row">
-        <span class="s-label">NET</span>
+        <span class="s-label">{{ t('groups.net') }}</span>
         <span class="s-val" :style="{ color: summary.nets >= 0 ? 'var(--moss)' : 'var(--hot)' }">
           {{ signedWhole(summary.nets, summary.cur) }}
         </span>
       </div>
       <div class="s-row">
-        <span class="s-label">TRACKED</span>
+        <span class="s-label">{{ t('groups.tracked') }}</span>
         <span class="s-val">{{ moneyWhole(summary.tracked, summary.cur) }}</span>
       </div>
       <div class="s-row">
-        <span class="s-label">THIS MONTH</span>
+        <span class="s-label">{{ t('groups.this_month') }}</span>
         <span class="s-val">{{ moneyWhole(summary.thisMonth, summary.cur) }}</span>
       </div>
     </div>
 
     <div class="row spread section-head">
-      <span class="eyebrow">{{ groups.length }} GROUPS</span>
+      <span class="eyebrow">{{ t('groups.count', { n: groups.length }) }}</span>
       <button class="linklike accent-link" @click="openCreate">
-        <Icon name="plus" :size="12" /> NEW
+        <Icon name="plus" :size="12" /> {{ t('groups.new') }}
       </button>
     </div>
 
-    <p v-if="loading" class="muted">Loading…</p>
+    <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error">{{ error }}</p>
     <template v-else>
       <div v-if="groups.length" class="group-list">
@@ -238,8 +240,10 @@ onMounted(load)
             <div class="body">
               <div class="name">{{ g.name }}</div>
               <div class="sub">
-                {{ g.member_ids?.length ?? 0 }} MEMBERS · OWNED BY
-                {{ memberCache[g.owner_id]?.name?.toUpperCase() || '—' }}
+                {{ t('groups.members_owned_by', {
+                  n: g.member_ids?.length ?? 0,
+                  owner: memberCache[g.owner_id]?.name?.toUpperCase() || '—',
+                }) }}
               </div>
             </div>
             <div class="meta">
@@ -256,12 +260,12 @@ onMounted(load)
               >
                 {{
                   groupBalance(g) === 0
-                    ? 'SETTLED'
+                    ? t('groups.settled')
                     : signedWhole(groupBalance(g), groupCurrency(g))
                 }}
               </div>
               <div class="total">
-                {{ moneyWhole(groupTotal(g), groupCurrency(g)) }} TOTAL
+                {{ moneyWhole(groupTotal(g), groupCurrency(g)) }} {{ t('groups.total') }}
               </div>
             </div>
           </router-link>
@@ -269,11 +273,11 @@ onMounted(load)
       </div>
 
       <button v-else class="dashed" @click="openCreate">
-        <Icon name="plus" :size="16" /> Create your first group
+        <Icon name="plus" :size="16" /> {{ t('groups.create_first') }}
       </button>
 
       <button v-if="groups.length" class="dashed" @click="openCreate">
-        <Icon name="plus" :size="16" /> Create a new group
+        <Icon name="plus" :size="16" /> {{ t('groups.create_new') }}
       </button>
     </template>
 

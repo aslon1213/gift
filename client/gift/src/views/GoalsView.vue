@@ -6,6 +6,7 @@ import type { Goal } from '../api/types'
 import { toast } from '../stores/toast'
 import { userStore } from '../stores/user'
 import { currencySymbol, moneyWhole, signed } from '../utils/format'
+import { t } from '../i18n'
 
 const currency = computed(() => userStore.currency.value)
 const curSymbol = computed(() => currencySymbol(currency.value))
@@ -124,11 +125,9 @@ onMounted(load)
 
 <template>
   <section class="goals">
-    <h1 class="hero">
-      What we're <em>saving for.</em>
-    </h1>
+    <h1 class="hero">{{ t('goals.saving_for') }}</h1>
 
-    <p v-if="loading" class="muted">Loading…</p>
+    <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error">{{ error }}</p>
 
     <template v-else>
@@ -171,19 +170,21 @@ onMounted(load)
           </div>
           <div class="row spread goal-foot">
             <div class="goal-remaining">
-              {{ moneyWhole(Math.max(0, g.target_amount - g.current_amount), currency) }} TO GO
+              {{ t('goals.to_go', {
+                amount: moneyWhole(Math.max(0, g.target_amount - g.current_amount), currency),
+              }) }}
             </div>
             <button class="contribute-btn" @click="openContribute(g)">
-              + CONTRIBUTE
+              {{ t('goals.contribute') }}
             </button>
           </div>
         </div>
       </div>
 
-      <div v-else class="empty">No goals yet. Set your first target.</div>
+      <div v-else class="empty">{{ t('common.no_data') }}</div>
 
       <button class="dashed" @click="openCreate">
-        <Icon name="plus" :size="16" /> New goal
+        <Icon name="plus" :size="16" /> {{ t('goals.new_goal') }}
       </button>
     </template>
 
@@ -193,25 +194,22 @@ onMounted(load)
         <div class="modal">
           <div class="modal-header">
             <button class="linklike" @click="showCreate = false">
-              <Icon name="close" :size="16" /> CANCEL
+              <Icon name="close" :size="16" /> {{ t('common.cancel') }}
             </button>
-            <div class="eyebrow">NEW GOAL</div>
+            <div class="eyebrow">{{ t('goals.new_goal') }}</div>
           </div>
 
           <div class="modal-body">
-            <h1 class="display">A new <em>target.</em></h1>
+            <h1 class="display">{{ t('goals.a_new_target') }}</h1>
 
             <label class="field" style="margin-top: 20px">
-              <span>NAME</span>
-              <input
-                v-model="newName"
-                placeholder="Bali · Group kitty"
-              />
+              <span>{{ t('common.name') }}</span>
+              <input v-model="newName" placeholder="Bali · Group kitty" />
             </label>
 
             <div class="stack-form split" style="margin-top: 14px">
               <label class="field">
-                <span>TARGET ({{ currency }})</span>
+                <span>{{ t('goals.target') }} ({{ currency }})</span>
                 <input
                   v-model.number="newTarget"
                   type="number"
@@ -221,7 +219,7 @@ onMounted(load)
                 />
               </label>
               <label class="field">
-                <span>SAVED ({{ currency }})</span>
+                <span>{{ t('goals.saved') }} ({{ currency }})</span>
                 <input
                   v-model.number="newCurrent"
                   type="number"
@@ -233,7 +231,7 @@ onMounted(load)
             </div>
 
             <label class="field" style="margin-top: 14px">
-              <span>DEADLINE</span>
+              <span>{{ t('goals.deadline') }}</span>
               <input v-model="newDeadline" type="date" />
             </label>
 
@@ -244,7 +242,7 @@ onMounted(load)
                 @click="createGoal"
               >
                 <Icon name="check" :size="18" />
-                {{ creating ? 'Saving…' : 'Create goal' }}
+                {{ creating ? t('common.loading') : t('goals.create_goal') }}
               </button>
             </div>
           </div>
@@ -262,14 +260,14 @@ onMounted(load)
         <div class="modal">
           <div class="modal-header">
             <button class="linklike" @click="contribFor = null">
-              <Icon name="close" :size="16" /> CANCEL
+              <Icon name="close" :size="16" /> {{ t('common.cancel') }}
             </button>
-            <div class="eyebrow">CONTRIBUTE</div>
+            <div class="eyebrow">{{ t('goals.contribute') }}</div>
           </div>
           <div class="modal-body">
-            <h1 class="display">Toward <em>{{ contribFor.name }}.</em></h1>
+            <h1 class="display">{{ t('goals.contribute_title', { name: contribFor.name }) }}</h1>
             <label class="field" style="margin-top: 20px">
-              <span>AMOUNT ({{ currency }})</span>
+              <span>{{ t('common.amount') }} ({{ currency }})</span>
               <input
                 v-model.number="contribAmount"
                 type="number"
@@ -286,7 +284,7 @@ onMounted(load)
                 @click="confirmContribute"
               >
                 <Icon name="check" :size="18" />
-                {{ contributing ? 'Saving…' : 'Add contribution' }}
+                {{ contributing ? t('common.loading') : t('goals.add_contribution') }}
               </button>
             </div>
           </div>

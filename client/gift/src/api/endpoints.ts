@@ -1,4 +1,6 @@
 import { api } from './client'
+import { auth } from '../stores/auth'
+import { server } from '../stores/server'
 import type {
   Budget,
   Goal,
@@ -146,8 +148,6 @@ export const settingsApi = {
   // Downloads an export — JSON as a .json file, CSV as a .zip of per-collection CSVs.
   // Uses fetch directly because the response is binary/text, not a wrapped JSON payload.
   export: async (format: 'json' | 'csv') => {
-    const { server } = await import('../stores/server')
-    const { auth } = await import('../stores/auth')
     const res = await fetch(`${server.baseUrl.value}/api/v1/settings/export_data?format=${format}`, {
       method: 'POST',
       headers: auth.accessToken.value

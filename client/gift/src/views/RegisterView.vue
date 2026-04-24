@@ -6,6 +6,7 @@ import { auth } from '../stores/auth'
 import { userStore } from '../stores/user'
 import type { CurrencyCode } from '../api/types'
 import { CURRENCY_CODES, CURRENCY_META } from '../utils/format'
+import { t } from '../i18n'
 import Icon from '../components/Icon.vue'
 
 const email = ref('')
@@ -42,24 +43,24 @@ async function submit() {
   <div class="auth-card">
     <div class="eyebrow">
       <span class="dot"></span>
-      <span>invite your people</span>
+      <span>{{ t('register.invite_your_people') }}</span>
     </div>
-    <h1>New <em>crew.</em></h1>
+    <h1>{{ t('register.new_crew') }}</h1>
     <form @submit.prevent="submit">
       <label class="field">
-        <span>Email</span>
+        <span>{{ t('common.email') }}</span>
         <input v-model="email" type="email" required autocomplete="email" />
       </label>
       <label class="field">
-        <span>Name</span>
+        <span>{{ t('common.name') }}</span>
         <input v-model="username" required autocomplete="username" />
       </label>
       <label class="field">
-        <span>Password</span>
+        <span>{{ t('common.password') }}</span>
         <input v-model="password" type="password" required autocomplete="new-password" />
       </label>
       <label class="field">
-        <span>Currency</span>
+        <span>{{ t('common.currency') }}</span>
         <div class="pill-row">
           <button
             v-for="code in CURRENCY_CODES"
@@ -75,12 +76,12 @@ async function submit() {
       </label>
       <p v-if="error" class="error">{{ error }}</p>
       <button class="btn btn-accent btn-lg btn-block" type="submit" :disabled="loading">
-        {{ loading ? 'Creating…' : 'Create account' }}
+        {{ loading ? t('register.creating') : t('register.create_account') }}
         <Icon v-if="!loading" name="check" :size="16" />
       </button>
     </form>
     <p class="muted">
-      Already registered? <router-link to="/login">Sign in</router-link>
+      {{ t('register.already_registered') }} <router-link to="/login">{{ t('login.sign_in') }}</router-link>
     </p>
   </div>
 </template>
