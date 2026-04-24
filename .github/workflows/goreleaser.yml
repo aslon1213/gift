@@ -8,6 +8,9 @@ on:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # ← required to create releases and upload artifacts
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6

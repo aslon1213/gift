@@ -21,7 +21,6 @@ before:
     - sh -c "cd client/gift && bun run build"
     # Android: build the Android app
     - scripts/decode-keystore.sh
-    - sh -c 'cd client/gift && bun run tauri android build --aab --ci'
     - sh -c 'cd client/gift && bun run tauri android build --apk --ci'
     # IOS
     # later
@@ -82,9 +81,6 @@ archives:
     files:
       - README.md
       - src: client/gift/src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
-        dst: .
-        strip_parent: true
-      - src: client/gift/src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
         dst: .
         strip_parent: true
 
