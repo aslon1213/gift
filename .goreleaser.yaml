@@ -14,10 +14,7 @@ before:
     # Frontend: install deps and produce client/gift/dist
     - sh -c "cd client/gift && bun run build"
     # Android: build the Android app
-    - sh -c 'echo "$KEYSTORE_BASE64" | base64 --decode >
-      client/gift/src-tauri/gen/android/app/gift.keystore'
-    - sh -c 'export
-      'KEYSTORE_PATH=$PWD/client/gift/src-tauri/gen/android/app/gift.keystore'
+    - scripts/decode-keystore.sh
     - sh -c 'cd client/gift && bun run tauri android build'
     - sh -c 'cd client/gift && bun run tauri android build --apk'
     # IOS
