@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"aslon1213/gift/configs"
+	"aslon1213/gift/pkg/repository"
 	"aslon1213/gift/services"
+	"context"
 	"errors"
 	"net/mail"
 	"strings"
@@ -81,12 +83,14 @@ type RefreshResponse struct {
 // AuthHandler contains HTTP handlers for authentication
 type AuthHandler struct {
 	authService *services.AuthService
+	users       *repository.UserRepository
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(authService *services.AuthService) *AuthHandler {
+func NewAuthHandler(authService *services.AuthService, users *repository.UserRepository) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
+		users:       users,
 	}
 }
 
@@ -388,4 +392,34 @@ func (ah *AuthHandler) RefreshToken(c fiber.Ctx) error {
 		"message": "Success refresh token",
 		"data":    response,
 	})
+}
+
+// GetUserInfo godoc
+// @Summary      Get user info
+// @Description  Retrieves the authenticated user's information
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}  "Success"
+// @Failure      401  {object}  map[string]interface{}  "Unauthorized"
+// @Failure      500  {object}  map[string]interface{}  "Internal server error"
+// @Router       /api/v1/auth/me [get]
+func (ah *AuthHandler) GetUserInfo(c fiber.Ctx) error {
+	userID, err := services.GetUserIDFromContext(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Invalid authentication token",
+			"data":    nil,
+		})
+	}
+	user, err := ah.users.GetByID(context.Background(), userID)
+	if err != nil || user == nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	}
+	user.Password = ""
+	if user.Currency == "" {
+		user.Currency = "UZS"
+	}
+	return c.Status(fiber.StatusOK).JSON(repository.NewResponse("success", "user info fetched successfully", user))
 }

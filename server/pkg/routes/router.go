@@ -40,6 +40,7 @@ func (r *Router) RegisterRoutes(app *fiber.App) {
 	auth.Post("/register", r.handlers.AuthHandler.Register)
 	auth.Post("/refresh", r.handlers.AuthHandler.RefreshToken)
 	auth.Post("/logout", middleware.Protected(), r.handlers.AuthHandler.Logout)
+	auth.Get("/me", middleware.Protected(), r.handlers.AuthHandler.GetUserInfo)
 
 	// add protected middleware to all routes
 
@@ -89,6 +90,7 @@ func (r *Router) RegisterRoutes(app *fiber.App) {
 	// settings
 	settings := api.Group("/settings", middleware.Protected())
 	settings.Get("/", r.handlers.SettingsHandler.Get)
+	settings.Post("/export_data", r.handlers.SettingsHandler.ExportData)
 
 	// budgets
 	budgets := api.Group("/budgets", middleware.Protected())

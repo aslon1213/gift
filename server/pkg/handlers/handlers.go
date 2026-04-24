@@ -38,6 +38,6 @@ func NewHandlers(repo *repository.Repository, db *mongo.Database, startedAt time
 		BudgetHandler:   NewBudgetHandler(repo.Budgets),
 		AlertHandler:    NewAlertHandler(repo.Alerts),
 		SettingsHandler: NewSettingsHandler(repo.Users, repo.Groups, repo.Budgets, repo.Goals, db, startedAt, Version),
-		AuthHandler:     NewAuthHandler(services.NewAuthService(repo.Users, repo.RefreshTokens, config.Auth.JwtSecret, config.Auth.JwtExpiresIn)),
+		AuthHandler:     NewAuthHandler(services.NewAuthService(repo.Users, repo.RefreshTokens, config.Auth.JwtSecret, config.Auth.JwtExpiresIn), repo.Users),
 	}
 }
