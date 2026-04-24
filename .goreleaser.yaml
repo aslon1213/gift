@@ -5,11 +5,11 @@ version: 2
 
 project_name: gift
 
-# env:
-#   - KEYSTORE_PASSWORD={{ .Env.KEYSTORE_PASSWORD }}
-#   - KEY_PASSWORD={{ .Env.KEY_PASSWORD }}
-#   - KEY_ALIAS={{ .Env.KEY_ALIAS }}
-#   - KEYSTORE_PATH={{ .Env.KEYSTORE_PATH }}
+env:
+  - KEYSTORE_BASE64={{ .Env.KEYSTORE_BASE64 }}
+  - KEYSTORE_PASSWORD={{ .Env.KEYSTORE_PASSWORD }}
+  - KEY_PASSWORD={{ .Env.KEY_PASSWORD }}
+  - KEY_ALIAS={{ .Env.KEY_ALIAS }}
 
 before:
   hooks:
@@ -81,7 +81,10 @@ archives:
     name_template: "{{ .ProjectName }}-android_{{ .Version }}"
     files:
       - README.md
-      - src: client/gift/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+      - src: client/gift/src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+        dst: .
+        strip_parent: true
+      - src: client/gift/src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
         dst: .
         strip_parent: true
 
