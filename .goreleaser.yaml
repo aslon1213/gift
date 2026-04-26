@@ -74,16 +74,6 @@ archives:
         dst: .
         strip_parent: true
 
-  - id: android
-    meta: true
-    formats: [ tar.gz ]
-    name_template: "{{ .ProjectName }}-android_{{ .Version }}"
-    files:
-      - README.md
-      - src: client/gift/src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
-        dst: .
-        strip_parent: true
-
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
 
@@ -98,3 +88,7 @@ changelog:
 release:
   footer: >-
     Released by [GoReleaser](https://github.com/goreleaser/goreleaser)!
+
+  extra_files:
+    - glob: client/gift/src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+      name_template: "{{ .ProjectName }}-android_{{ .Version }}.apk"
