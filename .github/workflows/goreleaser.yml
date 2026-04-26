@@ -61,3 +61,20 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+
+      - name: send telegram message on release
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            🚀 New Release Published!
+            Repository: ${{ github.repository }}
+            Tag: ${{ github.ref_name }}
+            Released by: ${{ github.actor }}
+            
+            Release details: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+            Changelog:
+            ${{ github.event.head_commit.message }}
+
+       
