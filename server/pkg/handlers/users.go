@@ -3,7 +3,6 @@ package handlers
 import (
 	"aslon1213/gift/pkg/repository"
 	"aslon1213/gift/services"
-	"net/http"
 
 	"github.com/gofiber/fiber/v3"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -13,83 +12,70 @@ type UserHandler struct {
 	repo *repository.UserRepository
 }
 
-// NewUserHandler creates a new UserHandler.
-// @Summary Create a new UserHandler
-// @Description Returns a new handler struct for user operations
-// @Tags users
 func NewUserHandler(repo *repository.UserRepository) *UserHandler {
 	return &UserHandler{repo: repo}
 }
 
-// List lists all users.
-// @Summary List users
-// @Description Returns a list of users
-// @Tags users
-// @Produce json
-// @Param query query string false "Query"
-// @Success 200 {object} repository.Response
-// @Failure 400 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Router /api/v1/users [get]
+// Query lists users matching a query string (excluding the caller).
+// @Summary      List users
+// @Description  Returns a list of users
+// @Tags         users
+// @Produce      json
+// @Param        query query     string false "Query"
+// @Success      200   {object}  repository.Response[[]repository.User]
+// @Failure      400   {object}  repository.Response[repository.Empty]
+// @Failure      401   {object}  repository.Response[repository.Empty]
+// @Failure      500   {object}  repository.Response[repository.Empty]
+// @Router       /api/v1/users [get]
 func (h *UserHandler) Query(c fiber.Ctx) error {
-
-	// get user_id from context
-	user_id, err := services.GetUserIDFromContext(c)
+	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(repository.NewResponse("error", "unauthorized", nil))
+		return repository.Unauthorized(c, "unauthorized")
 	}
 
-	query_param := c.Query("query")
-	if query_param == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.NewResponse("error", "query is required", nil))
+	queryParam := c.Query("query")
+	if queryParam == "" {
+		return repository.BadRequest(c, "query is required")
 	}
 
 	query := bson.M{
 		"$or": []bson.M{
-			{
-				"name": bson.M{"$regex": query_param, "$options": "i"},
-			},
-			{
-				"email": bson.M{"$regex": query_param, "$options": "i"},
-			},
+			{"name": bson.M{"$regex": queryParam, "$options": "i"}},
+			{"email": bson.M{"$regex": queryParam, "$options": "i"}},
 		},
-		"_id": bson.M{"$ne": user_id},
+		"_id": bson.M{"$ne": userID},
 	}
 	users, err := h.repo.Query(c.Context(), query)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
-	return c.Status(fiber.StatusOK).JSON(repository.NewResponse("success", "users fetched successfully", users))
-
+	return repository.OK(c, "users fetched successfully", users)
 }
 
 // GetByID gets a user by ID.
-// @Summary Get user by ID
-// @Description Returns a single user by their ID
-// @Tags users
-// @Produce json
-// @Param id path string true "User ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /api/v1/users/{id} [get]
+// @Summary      Get user by ID
+// @Description  Returns a single user by their ID
+// @Tags         users
+// @Produce      json
+// @Param        id  path     string true "User ID"
+// @Success      200 {object} repository.Response[repository.User]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
+// @Router       /api/v1/users/{id} [get]
 func (h *UserHandler) GetByID(c fiber.Ctx) error {
-	user_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	userID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid user id"})
+		return repository.BadRequest(c, "invalid user id")
 	}
 
-	user, err := h.repo.GetByID(c.Context(), user_id)
+	user, err := h.repo.GetByID(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal server error"})
+		return repository.Internal(c, "internal server error")
 	}
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": user})
+	return repository.OK(c, "user fetched successfully", user)
 }
 
 // UpdateUserRequest represents the request body for updating a user.
-// @Description UpdateUserRequest contains user fields required for the update API.
-// @Tags users
 type UpdateUserRequest struct {
 	Name            string `json:"name"`
 	Email           string `json:"email"`
@@ -98,63 +84,62 @@ type UpdateUserRequest struct {
 }
 
 // Update updates a user's information.
-// @Summary Update user
-// @Description Updates user details by ID
-// @Tags users
-// @Accept json
-// @Produce json
-// @Param id path string true "User ID"
-// @Param user body UpdateUserRequest true "Update User Request"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
-// @Router /api/v1/users/{id} [put]
+// @Summary      Update user
+// @Description  Updates user details by ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path     string             true "User ID"
+// @Param        user body     UpdateUserRequest  true "Update User Request"
+// @Success      200  {object} repository.Response[repository.User]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
+// @Router       /api/v1/users/{id} [put]
 func (h *UserHandler) Update(c fiber.Ctx) error {
 	var input UpdateUserRequest
 	if err := c.Bind().Body(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.NewResponse("error", "invalid request body", nil))
+		return repository.BadRequest(c, "invalid request body")
 	}
 
-	user_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	userID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.BadRequest(c, err.Error())
 	}
 
-	user, err := h.repo.GetByID(c.Context(), user_id)
+	user, err := h.repo.GetByID(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
 
-	if input.Name != "" {
-		user.Name = input.Name
-	} else {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "name is required", nil))
+	if input.Name == "" {
+		return repository.BadRequest(c, "name is required")
 	}
-	if input.Email != "" {
-		user.Email = input.Email
-	} else {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "email is required", nil))
+	user.Name = input.Name
+
+	if input.Email == "" {
+		return repository.BadRequest(c, "email is required")
 	}
-	if input.Password != "" && input.ConfirmPassword != "" && input.Password == input.ConfirmPassword {
-		user.Password = input.Password
-	} else {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "password and confirm password do not match", nil))
+	user.Email = input.Email
+
+	if input.Password == "" || input.ConfirmPassword == "" || input.Password != input.ConfirmPassword {
+		return repository.BadRequest(c, "password and confirm password do not match")
 	}
-	err = h.repo.Update(c.Context(), user_id, user)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	user.Password = input.Password
+
+	if err := h.repo.Update(c.Context(), userID, user); err != nil {
+		return repository.Internal(c, "internal server error")
 	}
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "user updated successfully", user))
+	return repository.OK(c, "user updated successfully", user)
 }
 
 // Delete deletes a user by ID.
-// @Summary Delete user
-// @Description Deletes a user by their ID
-// @Tags users
-// @Produce json
-// @Param id path string true "User ID"
-// @Success 501 {object} map[string]string "not implemented"
-// @Router /api/v1/users/{id} [delete]
+// @Summary      Delete user
+// @Description  Deletes a user by their ID
+// @Tags         users
+// @Produce      json
+// @Param        id  path     string true "User ID"
+// @Failure      501 {object} repository.Response[repository.Empty]
+// @Router       /api/v1/users/{id} [delete]
 func (h *UserHandler) Delete(c fiber.Ctx) error {
-	return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{"error": "not implemented"})
+	return repository.NotImplemented(c, "not implemented")
 }

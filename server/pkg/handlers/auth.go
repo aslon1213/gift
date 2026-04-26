@@ -18,65 +18,44 @@ import (
 // RegisterRequest defines the payload for user registration
 // swagger:model
 type RegisterRequest struct {
-	// User e-mail address
-	// required: true
-	Email string `json:"email"`
-	// Username for the account
-	// required: true
+	Email    string `json:"email"`
 	Username string `json:"username"`
-	// Password for the account (>=8 chars)
-	// required: true
 	Password string `json:"password"`
-	// Currency for the account
-	// required: true
 	Currency string `json:"currency"`
 }
 
 // RegisterResponse defines the response returned after registration
 // swagger:model
 type RegisterResponse struct {
-	// The user's ID
-	Id string `json:"id"`
-	// The user's email
-	Email string `json:"email"`
-	// The user's username
+	Id       string `json:"id"`
+	Email    string `json:"email"`
 	Username string `json:"username"`
 }
 
 // LoginRequest defines the payload for login
 // swagger:model
 type LoginRequest struct {
-	// User's email
-	// required: true
-	Email string `json:"email"`
-	// User's password
-	// required: true
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 // LoginResponse is returned upon successful login
 // swagger:model
 type LoginResponse struct {
-	// JWT access token
-	AccessToken string `json:"access_token"`
-	// JWT refresh token
+	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
 
 // RefreshRequest is the input for refreshing JWT tokens
 // swagger:model
 type RefreshRequest struct {
-	// Refresh Token
-	// required: true
 	RefreshToken string `json:"refresh_token"`
 }
 
 // RefreshResponse defines the output from token refresh
 // swagger:model
 type RefreshResponse struct {
-	// New access token
-	Token string `json:"token"`
-	// New refresh token
+	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
 }
 
@@ -127,130 +106,84 @@ func isValidEmail(email string) bool {
 }
 
 func isValidPassword(password string) bool {
-	// password should be at least 8 characters long
 	return len(password) >= 8
 }
 
 // Login godoc
-// @Summary Log in
-// @Description Log in with email and password
-// @Tags auth
-// @Accept  json
-// @Produce  json
-// @Param  data body LoginRequest true "Login credentials"
-// @Success 200 {object} LoginResponse
-// @Failure 400 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
-// @Router /auth/login [post]
+// @Summary      Log in
+// @Description  Log in with email and password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        data body     LoginRequest true "Login credentials"
+// @Success      200  {object} repository.Response[LoginResponse]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      401  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
+// @Router       /auth/login [post]
 func (ah *AuthHandler) Login(c fiber.Ctx) error {
 	config := configs.GetConfig()
 
 	var input LoginRequest
 	if err := c.Bind().Body(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Error on login request",
-			"data":    nil,
-		})
+		return repository.BadRequest(c, "Error on login request")
 	}
 
 	if strings.TrimSpace(input.Email) == "" || strings.TrimSpace(input.Password) == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Email and password are required",
-			"data":    nil,
-		})
+		return repository.BadRequest(c, "Email and password are required")
 	}
 
-	// Authenticate the user
 	accessToken, refreshToken, err := ah.authService.LoginWithRefresh(input.Email, input.Password, config.Auth.JwtRefreshExpiresIn)
 	if err != nil {
 		if errors.Is(err, services.ErrInvalidCredentials) {
-
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Invalid credentials",
-				"data":    nil,
-			})
-		} else {
-
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Internal Server Error",
-				"data":    nil,
-			})
+			return repository.Unauthorized(c, "Invalid credentials")
 		}
+		return repository.Internal(c, "Internal Server Error")
 	}
 
 	setJWTCookie(c, accessToken)
 
-	// Return the token
-	response := LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken}
-
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Success login",
-		"data":    response,
+	return repository.OK(c, "Success login", LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	})
 }
 
 // Logout godoc
-// @Summary Log out
-// @Description Log out and revoke all refresh tokens for user
-// @Tags auth
-// @Produce  json
-// @Success 200 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
-// @Router /auth/logout [post]
-// @Security ApiKeyAuth
+// @Summary      Log out
+// @Description  Log out and revoke all refresh tokens for user
+// @Tags         auth
+// @Produce      json
+// @Success      200 {object} repository.Response[repository.Empty]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
+// @Router       /auth/logout [post]
+// @Security     ApiKeyAuth
 func (ah *AuthHandler) Logout(c fiber.Ctx) error {
 	tok, ok := c.Locals("user").(*jwt.Token)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid authentication token",
-			"data":    nil,
-		})
+		return repository.Unauthorized(c, "Invalid authentication token")
 	}
 
 	claims, ok := tok.Claims.(jwt.MapClaims)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid authentication token claims",
-			"data":    nil,
-		})
+		return repository.Unauthorized(c, "Invalid authentication token claims")
 	}
 
 	sub, ok := claims["sub"].(string)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid authentication token subject",
-			"data":    nil,
-		})
+		return repository.Unauthorized(c, "Invalid authentication token subject")
 	}
 
 	userID, err := bson.ObjectIDFromHex(sub)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid authentication token subject",
-			"data":    nil,
-		})
+		return repository.Unauthorized(c, "Invalid authentication token subject")
 	}
 
 	if err := ah.authService.RevokeAllUserRefreshTokens(userID); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to revoke refresh tokens on logout",
-			"data":    nil,
-		})
+		return repository.Internal(c, "Failed to revoke refresh tokens on logout")
 	}
 
-	// Clear cookie
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -260,57 +193,36 @@ func (ah *AuthHandler) Logout(c fiber.Ctx) error {
 		SameSite: "Lax",
 	})
 
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Success logout",
-		"data":    nil,
-	})
+	return repository.Ack(c, "Success logout")
 }
 
 // Register godoc
-// @Summary Register user
-// @Description Register a new user
-// @Tags auth
-// @Accept  json
-// @Produce  json
-// @Param  data body RegisterRequest true "Registration request"
-// @Success 200 {object} RegisterResponse
-// @Failure 400 {object} map[string]interface{}
-// @Failure 409 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
-// @Router /auth/register [post]
+// @Summary      Register user
+// @Description  Register a new user
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        data body     RegisterRequest true "Registration request"
+// @Success      200  {object} repository.Response[RegisterResponse]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      409  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
+// @Router       /auth/register [post]
 func (ah *AuthHandler) Register(c fiber.Ctx) error {
 	var input RegisterRequest
 	if err := c.Bind().Body(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Error on register request",
-			"data":    nil,
-		})
+		return repository.BadRequest(c, "Error on register request")
 	}
 	if strings.TrimSpace(input.Email) == "" || strings.TrimSpace(input.Username) == "" || strings.TrimSpace(input.Password) == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Email, username, and password are required",
-			"data":    nil,
-		})
+		return repository.BadRequest(c, "Email, username, and password are required")
 	}
 
-	// validate password
 	if !isValidPassword(input.Password) {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Password should be at least 8 characters long",
-			"data":    nil,
-		})
+		return repository.BadRequest(c, "Password should be at least 8 characters long")
 	}
 
 	if !isValidEmail(input.Email) {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid email",
-			"data":    nil,
-		})
+		return repository.BadRequest(c, "Invalid email")
 	}
 	if input.Currency == "" {
 		input.Currency = "UZS"
@@ -319,78 +231,47 @@ func (ah *AuthHandler) Register(c fiber.Ctx) error {
 	user, err := ah.authService.Register(input.Email, input.Username, input.Password, input.Currency)
 	if err != nil {
 		if errors.Is(err, services.ErrEmailInUse) {
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Email already in use",
-				"data":    nil,
-			})
+			return repository.Conflict(c, "Email already in use")
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Error on registering user",
-			"data":    nil,
-		})
+		return repository.Internal(c, "Error on registering user")
 	}
 
-	newUser := RegisterResponse{
+	return repository.OK(c, "Success register", RegisterResponse{
 		Id:       user.ID.Hex(),
 		Email:    user.Email,
 		Username: user.Name,
-	}
-
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Success register",
-		"data":    newUser,
 	})
 }
 
 // RefreshToken godoc
-// @Summary Refresh JWT tokens
-// @Description Refresh access and refresh tokens using a refresh token
-// @Tags auth
-// @Accept  json
-// @Produce  json
-// @Param  data body RefreshRequest true "Refresh request"
-// @Success 200 {object} RefreshResponse
-// @Failure 400 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
-// @Router /auth/refresh [post]
+// @Summary      Refresh JWT tokens
+// @Description  Refresh access and refresh tokens using a refresh token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        data body     RefreshRequest true "Refresh request"
+// @Success      200  {object} repository.Response[RefreshResponse]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      401  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
+// @Router       /auth/refresh [post]
 func (ah *AuthHandler) RefreshToken(c fiber.Ctx) error {
 	var input RefreshRequest
 	if err := c.Bind().Body(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid request payload",
-			"data":    nil,
-		})
+		return repository.BadRequest(c, "Invalid request payload")
 	}
 	token, newRefreshToken, err := ah.authService.RefreshAccessToken(input.RefreshToken)
 	if err != nil {
 		if errors.Is(err, services.ErrInvalidToken) || errors.Is(err, services.ErrExpiredToken) {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Invalid or expired refresh token",
-				"data":    nil,
-			})
-		} else {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Internal server error",
-				"data":    nil,
-			})
+			return repository.Unauthorized(c, "Invalid or expired refresh token")
 		}
+		return repository.Internal(c, "Internal server error")
 	}
-	// Clear cookie
 	setJWTCookie(c, token)
 
-	response := RefreshResponse{Token: token, RefreshToken: newRefreshToken}
-
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Success refresh token",
-		"data":    response,
+	return repository.OK(c, "Success refresh token", RefreshResponse{
+		Token:        token,
+		RefreshToken: newRefreshToken,
 	})
 }
 
@@ -400,26 +281,22 @@ func (ah *AuthHandler) RefreshToken(c fiber.Ctx) error {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  map[string]interface{}  "Success"
-// @Failure      401  {object}  map[string]interface{}  "Unauthorized"
-// @Failure      500  {object}  map[string]interface{}  "Internal server error"
+// @Success      200  {object} repository.Response[repository.User]
+// @Failure      401  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
 // @Router       /api/v1/auth/me [get]
 func (ah *AuthHandler) GetUserInfo(c fiber.Ctx) error {
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid authentication token",
-			"data":    nil,
-		})
+		return repository.Unauthorized(c, "Invalid authentication token")
 	}
 	user, err := ah.users.GetByID(context.Background(), userID)
 	if err != nil || user == nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
 	user.Password = ""
 	if user.Currency == "" {
 		user.Currency = "UZS"
 	}
-	return c.Status(fiber.StatusOK).JSON(repository.NewResponse("success", "user info fetched successfully", user))
+	return repository.OK(c, "user info fetched successfully", user)
 }

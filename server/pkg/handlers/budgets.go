@@ -20,141 +20,88 @@ func NewBudgetHandler(repo *repository.BudgetRepository) *BudgetHandler {
 }
 
 // List lists all budgets for the authenticated user.
-// @Summary List budgets
-// @Description Returns all budgets for the authenticated user
-// @Tags budgets
-// @Produce json
-// @Success 200 {array} repository.Budget
-// @Failure 401 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Router /api/v1/budgets [get]
+// @Summary      List budgets
+// @Description  Returns all budgets for the authenticated user
+// @Tags         budgets
+// @Produce      json
+// @Success      200 {object} repository.Response[[]repository.Budget]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
+// @Router       /api/v1/budgets [get]
 func (h *BudgetHandler) List(c fiber.Ctx) error {
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(repository.Response{
-			Status:  "error",
-			Message: "unauthorized",
-			Data:    nil,
-		})
+		return repository.Unauthorized(c, "unauthorized")
 	}
 
 	budgets, err := h.repo.ListByUser(context.Background(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.Response{
-			Status:  "error",
-			Message: "failed to load budgets",
-			Data:    nil,
-		})
+		return repository.Internal(c, "failed to load budgets")
 	}
-	return c.Status(fiber.StatusOK).JSON(repository.Response{
-		Status:  "success",
-		Message: "budgets loaded successfully",
-		Data:    budgets,
-	})
+	return repository.OK(c, "budgets loaded successfully", budgets)
 }
 
 // GetByID gets a single budget by ID for the authenticated user.
-// @Summary Get budget by ID
-// @Tags budgets
-// @Produce json
-// @Param id path string true "Budget ID"
-// @Success 200 {object} repository.Budget
-// @Failure 400 {object} repository.Response
-// @Failure 401 {object} repository.Response
-// @Failure 403 {object} repository.Response
-// @Failure 404 {object} repository.Response
-// @Router /api/v1/budgets/{id} [get]
+// @Summary      Get budget by ID
+// @Tags         budgets
+// @Produce      json
+// @Param        id  path     string true "Budget ID"
+// @Success      200 {object} repository.Response[repository.Budget]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      403 {object} repository.Response[repository.Empty]
+// @Failure      404 {object} repository.Response[repository.Empty]
+// @Router       /api/v1/budgets/{id} [get]
 func (h *BudgetHandler) GetByID(c fiber.Ctx) error {
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(repository.Response{
-			Status:  "error",
-			Message: "unauthorized",
-			Data:    nil,
-		})
+		return repository.Unauthorized(c, "unauthorized")
 	}
 
 	budgetID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "invalid budget id",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "invalid budget id")
 	}
 
 	b, err := h.repo.GetByID(context.Background(), budgetID)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(repository.Response{
-			Status:  "error",
-			Message: "budget not found",
-			Data:    nil,
-		})
+		return repository.NotFound(c, "budget not found")
 	}
 	if b.UserID != userID {
-		return c.Status(fiber.StatusForbidden).JSON(repository.Response{
-			Status:  "error",
-			Message: "forbidden",
-			Data:    nil,
-		})
+		return repository.Forbidden(c, "forbidden")
 	}
-	return c.Status(fiber.StatusOK).JSON(repository.Response{
-		Status:  "success",
-		Message: "budget fetched successfully",
-		Data:    b,
-	})
+	return repository.OK(c, "budget fetched successfully", b)
 }
 
 // Create creates a new budget for the authenticated user.
-// @Summary Create budget
-// @Tags budgets
-// @Accept json
-// @Produce json
-// @Param budget body repository.Budget true "Budget data"
-// @Success 201 {object} repository.Budget
-// @Failure 400 {object} repository.Response
-// @Failure 401 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Router /api/v1/budgets [post]
+// @Summary      Create budget
+// @Tags         budgets
+// @Accept       json
+// @Produce      json
+// @Param        budget body     repository.Budget true "Budget data"
+// @Success      201    {object} repository.Response[repository.Budget]
+// @Failure      400    {object} repository.Response[repository.Empty]
+// @Failure      401    {object} repository.Response[repository.Empty]
+// @Failure      500    {object} repository.Response[repository.Empty]
+// @Router       /api/v1/budgets [post]
 func (h *BudgetHandler) Create(c fiber.Ctx) error {
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(repository.Response{
-			Status:  "error",
-			Message: "unauthorized",
-			Data:    nil,
-		})
+		return repository.Unauthorized(c, "unauthorized")
 	}
 
 	var req repository.Budget
 	if err := c.Bind().Body(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "invalid request",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "invalid request")
 	}
 	if req.Amount <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "amount must be positive",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "amount must be positive")
 	}
 	if req.Limit <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "limit must be positive",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "limit must be positive")
 	}
-
 	if req.Category == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "category is required",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "category is required")
 	}
 
 	req.ID = bson.NewObjectID()
@@ -172,74 +119,46 @@ func (h *BudgetHandler) Create(c fiber.Ctx) error {
 	req.UpdatedAt = time.Now()
 
 	if err := h.repo.Create(context.Background(), &req); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.Response{
-			Status:  "error",
-			Message: "failed to create budget",
-			Data:    nil,
-		})
+		return repository.Internal(c, "failed to create budget")
 	}
-	return c.Status(fiber.StatusCreated).JSON(repository.Response{
-		Status:  "success",
-		Message: "budget created successfully",
-		Data:    req,
-	})
+	return repository.Created(c, "budget created successfully", req)
 }
 
 // Update updates a budget by ID for the authenticated user.
-// @Summary Update budget
-// @Tags budgets
-// @Accept json
-// @Produce json
-// @Param id path string true "Budget ID"
-// @Param budget body repository.Budget true "Budget data"
-// @Success 200 {object} repository.Budget
-// @Failure 400 {object} repository.Response
-// @Failure 401 {object} repository.Response
-// @Failure 403 {object} repository.Response
-// @Failure 404 {object} repository.Response
-// @Router /api/v1/budgets/{id} [put]
+// @Summary      Update budget
+// @Tags         budgets
+// @Accept       json
+// @Produce      json
+// @Param        id     path     string             true "Budget ID"
+// @Param        budget body     repository.Budget  true "Budget data"
+// @Success      200    {object} repository.Response[repository.Budget]
+// @Failure      400    {object} repository.Response[repository.Empty]
+// @Failure      401    {object} repository.Response[repository.Empty]
+// @Failure      403    {object} repository.Response[repository.Empty]
+// @Failure      404    {object} repository.Response[repository.Empty]
+// @Router       /api/v1/budgets/{id} [put]
 func (h *BudgetHandler) Update(c fiber.Ctx) error {
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(repository.Response{
-			Status:  "error",
-			Message: "unauthorized",
-			Data:    nil,
-		})
+		return repository.Unauthorized(c, "unauthorized")
 	}
 
 	budgetID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "invalid budget id",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "invalid budget id")
 	}
 
 	existing, err := h.repo.GetByID(context.Background(), budgetID)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(repository.Response{
-			Status:  "error",
-			Message: "budget not found",
-			Data:    nil,
-		})
+		return repository.NotFound(c, "budget not found")
 	}
 	if existing.UserID != userID {
-		return c.Status(fiber.StatusForbidden).JSON(repository.Response{
-			Status:  "error",
-			Message: "forbidden",
-			Data:    nil,
-		})
+		return repository.Forbidden(c, "forbidden")
 	}
 
 	var req repository.Budget
 	if err := c.Bind().Body(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "invalid request",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "invalid request")
 	}
 
 	existing.Category = req.Category
@@ -252,77 +171,45 @@ func (h *BudgetHandler) Update(c fiber.Ctx) error {
 	existing.UpdatedAt = time.Now()
 
 	if err := h.repo.Update(context.Background(), budgetID, existing); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.Response{
-			Status:  "error",
-			Message: "failed to update budget",
-			Data:    nil,
-		})
+		return repository.Internal(c, "failed to update budget")
 	}
-	return c.Status(fiber.StatusOK).JSON(repository.Response{
-		Status:  "success",
-		Message: "budget updated successfully",
-		Data:    existing,
-	})
+	return repository.OK(c, "budget updated successfully", existing)
 }
 
 // Delete deletes a budget by ID for the authenticated user.
-// @Summary Delete budget
-// @Tags budgets
-// @Produce json
-// @Param id path string true "Budget ID"
-// @Success 200 {object} repository.Response
-// @Failure 400 {object} repository.Response
-// @Failure 401 {object} repository.Response
-// @Failure 403 {object} repository.Response
-// @Failure 404 {object} repository.Response
-// @Router /api/v1/budgets/{id} [delete]
+// @Summary      Delete budget
+// @Tags         budgets
+// @Produce      json
+// @Param        id  path     string true "Budget ID"
+// @Success      200 {object} repository.Response[repository.Empty]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      403 {object} repository.Response[repository.Empty]
+// @Failure      404 {object} repository.Response[repository.Empty]
+// @Router       /api/v1/budgets/{id} [delete]
 func (h *BudgetHandler) Delete(c fiber.Ctx) error {
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(repository.Response{
-			Status:  "error",
-			Message: "unauthorized",
-			Data:    nil,
-		})
+		return repository.Unauthorized(c, "unauthorized")
 	}
 
 	budgetID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "invalid budget id",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "invalid budget id")
 	}
 
 	existing, err := h.repo.GetByID(context.Background(), budgetID)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(repository.Response{
-			Status:  "error",
-			Message: "budget not found",
-			Data:    nil,
-		})
+		return repository.NotFound(c, "budget not found")
 	}
 	if existing.UserID != userID {
-		return c.Status(fiber.StatusForbidden).JSON(repository.Response{
-			Status:  "error",
-			Message: "forbidden",
-			Data:    nil,
-		})
+		return repository.Forbidden(c, "forbidden")
 	}
 
 	if err := h.repo.Delete(context.Background(), budgetID); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.Response{
-			Status:  "error",
-			Message: "failed to delete budget",
-			Data:    nil,
-		})
+		return repository.Internal(c, "failed to delete budget")
 	}
-	return c.Status(fiber.StatusOK).JSON(repository.Response{
-		Status:  "success",
-		Message: "budget deleted successfully",
-		Data:    map[string]bool{"deleted": true},
-	})
+	return repository.Ack(c, "budget deleted successfully")
 }
 
 // IncreaseAmount godoc
@@ -331,82 +218,17 @@ func (h *BudgetHandler) Delete(c fiber.Ctx) error {
 // @Tags         budgets
 // @Accept       json
 // @Produce      json
-// @Param        id     path      string                     true   "Budget ID"
-// @Param        amount query   float64                      false  "Amount to increase"  default(0)
-// @Success      200    {object}  repository.Response        "Amount increased successfully"
-// @Failure      400    {object}  repository.Response        "Invalid budget id, request, or amount"
-// @Failure      401    {object}  repository.Response        "Unauthorized"
-// @Failure      403    {object}  repository.Response        "Forbidden"
-// @Failure      404    {object}  repository.Response        "Budget not found"
-// @Failure      500    {object}  repository.Response        "Failed to increase amount"
+// @Param        id     path  string  true  "Budget ID"
+// @Param        amount query float64 false "Amount to increase" default(0)
+// @Success      200 {object} repository.Response[repository.Budget]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      403 {object} repository.Response[repository.Empty]
+// @Failure      404 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
 // @Router       /api/v1/budgets/{id}/increase [post]
 func (h *BudgetHandler) IncreaseAmount(c fiber.Ctx) error {
-	userID, err := services.GetUserIDFromContext(c)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(repository.Response{
-			Status:  "error",
-			Message: "unauthorized",
-			Data:    nil,
-		})
-	}
-
-	budgetID, err := bson.ObjectIDFromHex(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "invalid budget id",
-			Data:    nil,
-		})
-	}
-
-	existing, err := h.repo.GetByID(context.Background(), budgetID)
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(repository.Response{
-			Status:  "error",
-			Message: "budget not found",
-			Data:    nil,
-		})
-	}
-	if existing.UserID != userID {
-		return c.Status(fiber.StatusForbidden).JSON(repository.Response{
-			Status:  "error",
-			Message: "forbidden",
-			Data:    nil,
-		})
-	}
-
-	amount := c.Query("amount", "0")
-	// parse amount float
-	amountFloat, err := strconv.ParseFloat(amount, 64)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "invalid amount",
-			Data:    nil,
-		})
-	}
-	if amountFloat <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "amount must be positive",
-			Data:    nil,
-		})
-	}
-
-	existing.Amount += amountFloat
-	existing.UpdatedAt = time.Now()
-	if err := h.repo.Update(context.Background(), budgetID, existing); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.Response{
-			Status:  "error",
-			Message: "failed to increase amount",
-			Data:    nil,
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(repository.Response{
-		Status:  "success",
-		Message: "amount increased successfully",
-		Data:    existing,
-	})
+	return h.adjustAmount(c, +1)
 }
 
 // DecreaseAmount godoc
@@ -415,80 +237,56 @@ func (h *BudgetHandler) IncreaseAmount(c fiber.Ctx) error {
 // @Tags         budgets
 // @Accept       json
 // @Produce      json
-// @Param        id     path      string                     true   "Budget ID"
-// @Param        amount query   float64                      false  "Amount to decrease"  default(0)
-// @Success      200    {object}  repository.Response        "Amount decreased successfully"
-// @Failure      400    {object}  repository.Response        "Invalid budget id, request, or amount"
-// @Failure      401    {object}  repository.Response        "Unauthorized"
-// @Failure      403    {object}  repository.Response        "Forbidden"
-// @Failure      404    {object}  repository.Response        "Budget not found"
-// @Failure      500    {object}  repository.Response        "Failed to decrease amount"
+// @Param        id     path  string  true  "Budget ID"
+// @Param        amount query float64 false "Amount to decrease" default(0)
+// @Success      200 {object} repository.Response[repository.Budget]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      403 {object} repository.Response[repository.Empty]
+// @Failure      404 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
 // @Router       /api/v1/budgets/{id}/decrease [post]
 func (h *BudgetHandler) DecreaseAmount(c fiber.Ctx) error {
+	return h.adjustAmount(c, -1)
+}
+
+func (h *BudgetHandler) adjustAmount(c fiber.Ctx, sign float64) error {
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(repository.Response{
-			Status:  "error",
-			Message: "unauthorized",
-			Data:    nil,
-		})
+		return repository.Unauthorized(c, "unauthorized")
 	}
 
 	budgetID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "invalid budget id",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "invalid budget id")
 	}
 
 	existing, err := h.repo.GetByID(context.Background(), budgetID)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(repository.Response{
-			Status:  "error",
-			Message: "budget not found",
-			Data:    nil,
-		})
+		return repository.NotFound(c, "budget not found")
 	}
 	if existing.UserID != userID {
-		return c.Status(fiber.StatusForbidden).JSON(repository.Response{
-			Status:  "error",
-			Message: "forbidden",
-			Data:    nil,
-		})
+		return repository.Forbidden(c, "forbidden")
 	}
 
-	amount := c.Query("amount", "0")
-	// parse amount float
-	amountFloat, err := strconv.ParseFloat(amount, 64)
+	amountFloat, err := strconv.ParseFloat(c.Query("amount", "0"), 64)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "invalid amount",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "invalid amount")
 	}
 	if amountFloat <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(repository.Response{
-			Status:  "error",
-			Message: "amount must be positive",
-			Data:    nil,
-		})
+		return repository.BadRequest(c, "amount must be positive")
 	}
 
-	existing.Amount -= amountFloat
+	existing.Amount += sign * amountFloat
 	existing.UpdatedAt = time.Now()
 	if err := h.repo.Update(context.Background(), budgetID, existing); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.Response{
-			Status:  "error",
-			Message: "failed to decrease amount",
-			Data:    nil,
-		})
+		if sign > 0 {
+			return repository.Internal(c, "failed to increase amount")
+		}
+		return repository.Internal(c, "failed to decrease amount")
 	}
-	return c.Status(fiber.StatusOK).JSON(repository.Response{
-		Status:  "success",
-		Message: "amount decreased successfully",
-		Data:    existing,
-	})
+	if sign > 0 {
+		return repository.OK(c, "amount increased successfully", existing)
+	}
+	return repository.OK(c, "amount decreased successfully", existing)
 }

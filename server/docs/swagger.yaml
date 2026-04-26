@@ -1,221 +1,6 @@
 basePath: /api/v1
 definitions:
-  handlers.ContributeRequest:
-    properties:
-      amount:
-        type: number
-    type: object
-  handlers.CreateGroupRequest:
-    properties:
-      member_ids:
-        example:
-        - '["60d5ec49f99a2d3a829a7d1f"]'
-        items:
-          type: string
-        type: array
-      name:
-        example: Book Club
-        type: string
-      owner_id:
-        example: 60d5ec49f99a2d3a829a7d1e
-        type: string
-    type: object
-  handlers.CreateSpendingRequest:
-    properties:
-      amount:
-        type: number
-      category:
-        type: string
-      currency:
-        type: string
-      date:
-        type: string
-      description:
-        type: string
-      group_id:
-        type: string
-    type: object
-  handlers.InviteMemberRequest:
-    properties:
-      member_id:
-        example: 60d5ec49f99a2d3a829a7d1e
-        type: string
-    type: object
-  handlers.LoginRequest:
-    properties:
-      email:
-        description: |-
-          User's email
-          required: true
-        type: string
-      password:
-        description: |-
-          User's password
-          required: true
-        type: string
-    type: object
-  handlers.LoginResponse:
-    properties:
-      access_token:
-        description: JWT access token
-        type: string
-      refresh_token:
-        description: JWT refresh token
-        type: string
-    type: object
-  handlers.ProfileInfo:
-    properties:
-      balance:
-        type: number
-      currency:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-    type: object
-  handlers.RefreshRequest:
-    properties:
-      refresh_token:
-        description: |-
-          Refresh Token
-          required: true
-        type: string
-    type: object
-  handlers.RefreshResponse:
-    properties:
-      refresh_token:
-        description: New refresh token
-        type: string
-      token:
-        description: New access token
-        type: string
-    type: object
-  handlers.RegisterRequest:
-    properties:
-      currency:
-        description: |-
-          Currency for the account
-          required: true
-        type: string
-      email:
-        description: |-
-          User e-mail address
-          required: true
-        type: string
-      password:
-        description: |-
-          Password for the account (>=8 chars)
-          required: true
-        type: string
-      username:
-        description: |-
-          Username for the account
-          required: true
-        type: string
-    type: object
-  handlers.RegisterResponse:
-    properties:
-      email:
-        description: The user's email
-        type: string
-      id:
-        description: The user's ID
-        type: string
-      username:
-        description: The user's username
-        type: string
-    type: object
-  handlers.RemoveMemberRequest:
-    properties:
-      member_id:
-        example: 60d5ec49f99a2d3a829a7d1e
-        type: string
-    type: object
-  handlers.ServerInfo:
-    properties:
-      host:
-        type: string
-      online:
-        type: boolean
-      started_at:
-        type: string
-      uptime:
-        type: string
-      uptime_seconds:
-        type: integer
-      version:
-        type: string
-    type: object
-  handlers.ServerStats:
-    properties:
-      budgets:
-        type: integer
-      db_size_bytes:
-        type: integer
-      goals:
-        type: integer
-      goroutines:
-        type: integer
-      groups:
-        type: integer
-      mem_mb:
-        type: integer
-      users:
-        type: integer
-    type: object
-  handlers.SettingsResponse:
-    properties:
-      profile:
-        $ref: '#/definitions/handlers.ProfileInfo'
-      server:
-        $ref: '#/definitions/handlers.ServerInfo'
-      stats:
-        $ref: '#/definitions/handlers.ServerStats'
-    type: object
-  handlers.UpdateGroupRequest:
-    properties:
-      member_ids:
-        example:
-        - '["60d5ec49f99a2d3a829a7d1f"]'
-        items:
-          type: string
-        type: array
-      name:
-        example: Book Club
-        type: string
-      owner_id:
-        example: 60d5ec49f99a2d3a829a7d1e
-        type: string
-    type: object
-  handlers.UpdateSpendingRequest:
-    properties:
-      amount:
-        type: number
-      category:
-        type: string
-      currency:
-        type: string
-      date:
-        type: string
-      description:
-        type: string
-    type: object
-  handlers.UpdateUserRequest:
-    description: UpdateUserRequest contains user fields required for the update API.
-    properties:
-      confirm_password:
-        type: string
-      email:
-        type: string
-      name:
-        type: string
-      password:
-        type: string
-    type: object
-  repository.Budget:
+  aslon1213_gift_pkg_repository.Budget:
     properties:
       amount:
         type: number
@@ -240,7 +25,9 @@ definitions:
       user_id:
         type: string
     type: object
-  repository.Goal:
+  aslon1213_gift_pkg_repository.Empty:
+    type: object
+  aslon1213_gift_pkg_repository.Goal:
     properties:
       created_at:
         type: string
@@ -263,7 +50,24 @@ definitions:
       user_id:
         type: string
     type: object
-  repository.Income:
+  aslon1213_gift_pkg_repository.Group:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      member_ids:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      owner_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Income:
     properties:
       amount:
         type: number
@@ -284,12 +88,446 @@ definitions:
       user_id:
         type: string
     type: object
-  repository.Response:
+  aslon1213_gift_pkg_repository.Response-any:
     properties:
       data: {}
       message:
+        example: ok
         type: string
       status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Budget:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Budget'
+        type: array
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Goal:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Goal'
+        type: array
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Group:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Group'
+        type: array
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Income:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Income'
+        type: array
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Spending:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Spending'
+        type: array
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_User:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.User'
+        type: array
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget:
+    properties:
+      data:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.Budget'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty:
+    properties:
+      data:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.Empty'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal:
+    properties:
+      data:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.Goal'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group:
+    properties:
+      data:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.Group'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Income:
+    properties:
+      data:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.Income'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Spending:
+    properties:
+      data:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.Spending'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User:
+    properties:
+      data:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.User'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-pkg_handlers_LoginResponse:
+    properties:
+      data:
+        $ref: '#/definitions/pkg_handlers.LoginResponse'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-pkg_handlers_RefreshResponse:
+    properties:
+      data:
+        $ref: '#/definitions/pkg_handlers.RefreshResponse'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-pkg_handlers_RegisterResponse:
+    properties:
+      data:
+        $ref: '#/definitions/pkg_handlers.RegisterResponse'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-pkg_handlers_SettingsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/pkg_handlers.SettingsResponse'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Spending:
+    properties:
+      amount:
+        type: number
+      budgets:
+        description: budgets link
+        items:
+          type: string
+        type: array
+      category:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      group_id:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.User:
+    properties:
+      balance:
+        type: number
+      created_at:
+        type: string
+      currency:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  pkg_handlers.ContributeRequest:
+    properties:
+      amount:
+        type: number
+    type: object
+  pkg_handlers.CreateGroupRequest:
+    properties:
+      member_ids:
+        example:
+        - '["60d5ec49f99a2d3a829a7d1f"]'
+        items:
+          type: string
+        type: array
+      name:
+        example: Book Club
+        type: string
+      owner_id:
+        example: 60d5ec49f99a2d3a829a7d1e
+        type: string
+    type: object
+  pkg_handlers.CreateSpendingRequest:
+    properties:
+      amount:
+        type: number
+      category:
+        type: string
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      group_id:
+        type: string
+    type: object
+  pkg_handlers.InviteMemberRequest:
+    properties:
+      member_id:
+        example: 60d5ec49f99a2d3a829a7d1e
+        type: string
+    type: object
+  pkg_handlers.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  pkg_handlers.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  pkg_handlers.ProfileInfo:
+    properties:
+      balance:
+        type: number
+      currency:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  pkg_handlers.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  pkg_handlers.RefreshResponse:
+    properties:
+      refresh_token:
+        type: string
+      token:
+        type: string
+    type: object
+  pkg_handlers.RegisterRequest:
+    properties:
+      currency:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  pkg_handlers.RegisterResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      username:
+        type: string
+    type: object
+  pkg_handlers.RemoveMemberRequest:
+    properties:
+      member_id:
+        example: 60d5ec49f99a2d3a829a7d1e
+        type: string
+    type: object
+  pkg_handlers.ServerInfo:
+    properties:
+      host:
+        type: string
+      online:
+        type: boolean
+      started_at:
+        type: string
+      uptime:
+        type: string
+      uptime_seconds:
+        type: integer
+      version:
+        type: string
+    type: object
+  pkg_handlers.ServerStats:
+    properties:
+      budgets:
+        type: integer
+      db_size_bytes:
+        type: integer
+      goals:
+        type: integer
+      goroutines:
+        type: integer
+      groups:
+        type: integer
+      mem_mb:
+        type: integer
+      users:
+        type: integer
+    type: object
+  pkg_handlers.SettingsResponse:
+    properties:
+      profile:
+        $ref: '#/definitions/pkg_handlers.ProfileInfo'
+      server:
+        $ref: '#/definitions/pkg_handlers.ServerInfo'
+      stats:
+        $ref: '#/definitions/pkg_handlers.ServerStats'
+    type: object
+  pkg_handlers.UpdateGroupRequest:
+    properties:
+      member_ids:
+        example:
+        - '["60d5ec49f99a2d3a829a7d1f"]'
+        items:
+          type: string
+        type: array
+      name:
+        example: Book Club
+        type: string
+      owner_id:
+        example: 60d5ec49f99a2d3a829a7d1e
+        type: string
+    type: object
+  pkg_handlers.UpdateSpendingRequest:
+    properties:
+      amount:
+        type: number
+      category:
+        type: string
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+    type: object
+  pkg_handlers.UpdateUserRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
         type: string
     type: object
 externalDocs:
@@ -309,6 +547,81 @@ info:
   title: Gift API
   version: 0.1.0
 paths:
+  /api/v1/alerts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      summary: List alerts
+      tags:
+      - alerts
+    post:
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      summary: Create alert
+      tags:
+      - alerts
+  /api/v1/alerts/{id}:
+    delete:
+      parameters:
+      - description: Alert ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      summary: Delete alert
+      tags:
+      - alerts
+    get:
+      parameters:
+      - description: Alert ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      summary: Get alert by ID
+      tags:
+      - alerts
+    put:
+      parameters:
+      - description: Alert ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      summary: Update alert
+      tags:
+      - alerts
   /api/v1/auth/me:
     get:
       consumes:
@@ -318,20 +631,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Success
+          description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Get user info
       tags:
       - auth
@@ -344,17 +654,15 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/repository.Budget'
-            type: array
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Budget'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: List budgets
       tags:
       - budgets
@@ -367,26 +675,26 @@ paths:
         name: budget
         required: true
         schema:
-          $ref: '#/definitions/repository.Budget'
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Budget'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/repository.Budget'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Create budget
       tags:
       - budgets
@@ -404,23 +712,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Delete budget
       tags:
       - budgets
@@ -437,23 +745,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Budget'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Get budget by ID
       tags:
       - budgets
@@ -471,30 +779,30 @@ paths:
         name: budget
         required: true
         schema:
-          $ref: '#/definitions/repository.Budget'
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Budget'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Budget'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Update budget
       tags:
       - budgets
@@ -520,29 +828,29 @@ paths:
       - application/json
       responses:
         "200":
-          description: Amount decreased successfully
+          description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget'
         "400":
-          description: Invalid budget id, request, or amount
+          description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
-          description: Budget not found
+          description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
-          description: Failed to decrease amount
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Decrease the amount of a budget
       tags:
       - budgets
@@ -568,56 +876,49 @@ paths:
       - application/json
       responses:
         "200":
-          description: Amount increased successfully
+          description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget'
         "400":
-          description: Invalid budget id, request, or amount
+          description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
-          description: Budget not found
+          description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
-          description: Failed to increase amount
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Increase the amount of a budget
       tags:
       - budgets
   /api/v1/goals:
     get:
-      description: Returns all goals for the authenticated user
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/repository.Goal'
-            type: array
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Goal'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: List goals
       tags:
       - goals
@@ -630,32 +931,26 @@ paths:
         name: goal
         required: true
         schema:
-          $ref: '#/definitions/repository.Goal'
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Goal'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/repository.Goal'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Create goal
       tags:
       - goals
@@ -673,33 +968,27 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: boolean
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Delete goal
       tags:
       - goals
@@ -716,31 +1005,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Goal'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Get goal by ID
       tags:
       - goals
@@ -758,38 +1039,34 @@ paths:
         name: goal
         required: true
         schema:
-          $ref: '#/definitions/repository.Goal'
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Goal'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Goal'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Update goal
       tags:
       - goals
@@ -797,51 +1074,46 @@ paths:
     post:
       consumes:
       - application/json
-      description: Adds `amount` to the goal's current_amount
       parameters:
       - description: Goal ID
         in: path
         name: id
         required: true
         type: string
-      - description: Contribution
+      - description: Contribution body
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.ContributeRequest'
+          $ref: '#/definitions/pkg_handlers.ContributeRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Goal'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Contribute to goal
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      summary: Contribute to a goal
       tags:
       - goals
   /api/v1/incomes:
@@ -853,21 +1125,15 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/repository.Income'
-            type: array
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Income'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: List incomes
       tags:
       - incomes
@@ -881,32 +1147,26 @@ paths:
         name: income
         required: true
         schema:
-          $ref: '#/definitions/repository.Income'
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Income'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/repository.Income'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Income'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Create income
       tags:
       - incomes
@@ -925,39 +1185,27 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: boolean
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Delete income
       tags:
       - incomes
@@ -975,31 +1223,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Income'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Income'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Get income by ID
       tags:
       - incomes
@@ -1019,44 +1259,34 @@ paths:
         name: income
         required: true
         schema:
-          $ref: '#/definitions/repository.Income'
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Income'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Income'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Income'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Update income
       tags:
       - incomes
@@ -1070,19 +1300,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.SettingsResponse'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_SettingsResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Get settings snapshot
       tags:
       - settings
@@ -1102,21 +1328,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Success
+          description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-any'
         "400":
-          description: Invalid format
+          description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Export all data
       tags:
       - settings
@@ -1142,27 +1364,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - ApiKeyAuth: []
       summary: Link a budget to a spending
@@ -1191,27 +1413,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - ApiKeyAuth: []
       summary: Unlink a budget from a spending
@@ -1231,15 +1453,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_User'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: List users
       tags:
       - users
@@ -1256,11 +1482,9 @@ paths:
       - application/json
       responses:
         "501":
-          description: not implemented
+          description: Not Implemented
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Delete user
       tags:
       - users
@@ -1278,20 +1502,15 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Get user by ID
       tags:
       - users
@@ -1310,25 +1529,22 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/handlers.UpdateUserRequest'
+          $ref: '#/definitions/pkg_handlers.UpdateUserRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Update user
       tags:
       - users
@@ -1343,29 +1559,26 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/handlers.LoginRequest'
+          $ref: '#/definitions/pkg_handlers.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.LoginResponse'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_LoginResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Log in
       tags:
       - auth
@@ -1378,18 +1591,15 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - ApiKeyAuth: []
       summary: Log out
@@ -1406,29 +1616,26 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/handlers.RefreshRequest'
+          $ref: '#/definitions/pkg_handlers.RefreshRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.RefreshResponse'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_RefreshResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Refresh JWT tokens
       tags:
       - auth
@@ -1443,29 +1650,26 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/handlers.RegisterRequest'
+          $ref: '#/definitions/pkg_handlers.RegisterRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.RegisterResponse'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_RegisterResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "409":
           description: Conflict
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Register user
       tags:
       - auth
@@ -1484,19 +1688,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Group'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - BearerAuth: []
       summary: List or filter groups for the user
@@ -1512,22 +1716,22 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreateGroupRequest'
+          $ref: '#/definitions/pkg_handlers.CreateGroupRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - BearerAuth: []
       summary: Create group
@@ -1548,15 +1752,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - BearerAuth: []
       summary: Delete group
@@ -1576,19 +1780,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - BearerAuth: []
       summary: Get group by ID
@@ -1609,22 +1813,22 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.UpdateGroupRequest'
+          $ref: '#/definitions/pkg_handlers.UpdateGroupRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - BearerAuth: []
       summary: Update group
@@ -1646,34 +1850,34 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.InviteMemberRequest'
+          $ref: '#/definitions/pkg_handlers.InviteMemberRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - BearerAuth: []
       summary: Invite member to group
@@ -1695,34 +1899,34 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.RemoveMemberRequest'
+          $ref: '#/definitions/pkg_handlers.RemoveMemberRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - BearerAuth: []
       summary: Remove member from group
@@ -1769,11 +1973,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Spending'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: List spendings
       tags:
       - spendings
@@ -1787,30 +1991,30 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreateSpendingRequest'
+          $ref: '#/definitions/pkg_handlers.CreateSpendingRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Spending'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - ApiKeyAuth: []
       summary: Create spending
@@ -1833,27 +2037,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - ApiKeyAuth: []
       summary: Delete spending
@@ -1875,15 +2079,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Spending'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       summary: Get spending by ID
       tags:
       - spendings
@@ -1902,34 +2106,34 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.UpdateSpendingRequest'
+          $ref: '#/definitions/pkg_handlers.UpdateSpendingRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Spending'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/repository.Response'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
       security:
       - ApiKeyAuth: []
       summary: Update spending

@@ -4,7 +4,6 @@ import (
 	"aslon1213/gift/pkg/repository"
 	"aslon1213/gift/services"
 	"log"
-	"net/http"
 	"time"
 
 	jwtware "github.com/gofiber/contrib/v3/jwt"
@@ -21,32 +20,29 @@ func NewGroupHandler(repo *repository.GroupRepository) *GroupHandler {
 }
 
 // Query godoc
-// @Summary List or filter groups for the user
-// @Description Query all groups for the user by name. Returns groups where the user is the owner or a member.
-// @Tags groups
-// @Produce json
-// @Param name query string false "Group name"
-// @Success 200 {object} repository.Response
-// @Failure 400 {object} repository.Response
-// @Failure 401 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Security BearerAuth
-// @Router /groups [get]
+// @Summary      List or filter groups for the user
+// @Description  Query all groups for the user by name. Returns groups where the user is the owner or a member.
+// @Tags         groups
+// @Produce      json
+// @Param        name query    string false "Group name"
+// @Success      200  {object} repository.Response[[]repository.Group]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      401  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
+// @Security     BearerAuth
+// @Router       /groups [get]
 func (h *GroupHandler) Query(c fiber.Ctx) error {
-	// Fetch user_id from locals
-
 	token := jwtware.FromContext(c)
 	log.Println(token.Claims)
 	userIDStr, err := token.Claims.GetSubject()
 	if err != nil || userIDStr == "" {
-		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", "user_id missing in context", nil))
+		return repository.Unauthorized(c, "user_id missing in context")
 	}
 	userID, err := bson.ObjectIDFromHex(userIDStr)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid user_id", nil))
+		return repository.BadRequest(c, "invalid user_id")
 	}
 
-	// Build query to fetch groups where user is owner or a member
 	orConditions := []bson.M{
 		{"owner_id": userID},
 		{"member_ids": userID},
@@ -67,39 +63,37 @@ func (h *GroupHandler) Query(c fiber.Ctx) error {
 		query["$and"] = append(query["$and"].([]bson.M), match)
 	}
 
-	// Pagination is not handled in repository, so we ignore limit/offset in query for now
-
 	groups, err := h.repo.Query(c.Context(), query)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
 
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "groups fetched successfully", groups))
+	return repository.OK(c, "groups fetched successfully", groups)
 }
 
 // GetByID godoc
-// @Summary Get group by ID
-// @Description Get a specific group by its ID
-// @Tags groups
-// @Produce json
-// @Param id path string true "Group ID"
-// @Success 200 {object} repository.Response
-// @Failure 400 {object} repository.Response
-// @Failure 404 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Router /groups/{id} [get]
-// @Security BearerAuth
+// @Summary      Get group by ID
+// @Description  Get a specific group by its ID
+// @Tags         groups
+// @Produce      json
+// @Param        id  path     string true "Group ID"
+// @Success      200 {object} repository.Response[repository.Group]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      404 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
+// @Security     BearerAuth
+// @Router       /groups/{id} [get]
 func (h *GroupHandler) GetByID(c fiber.Ctx) error {
-	group_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	groupID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.BadRequest(c, err.Error())
 	}
 
-	group, err := h.repo.GetByID(c.Context(), group_id)
+	group, err := h.repo.GetByID(c.Context(), groupID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "group fetched successfully", group))
+	return repository.OK(c, "group fetched successfully", group)
 }
 
 // CreateGroupRequest represents a request to create a new group
@@ -110,27 +104,27 @@ type CreateGroupRequest struct {
 }
 
 // Create godoc
-// @Summary Create group
-// @Description Create a new group
-// @Tags groups
-// @Accept json
-// @Produce json
-// @Param body body CreateGroupRequest true "Group create request"
-// @Success 200 {object} repository.Response
-// @Failure 400 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Router /groups [post]
-// @Security BearerAuth
+// @Summary      Create group
+// @Description  Create a new group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        body body     CreateGroupRequest true "Group create request"
+// @Success      201  {object} repository.Response[repository.Group]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
+// @Security     BearerAuth
+// @Router       /groups [post]
 func (h *GroupHandler) Create(c fiber.Ctx) error {
 	var input CreateGroupRequest
 	if err := c.Bind().Body(&input); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid request body", nil))
+		return repository.BadRequest(c, "invalid request body")
 	}
 	if input.Name == "" {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "name is required", nil))
+		return repository.BadRequest(c, "name is required")
 	}
 	if input.OwnerID.IsZero() {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "owner_id is required", nil))
+		return repository.BadRequest(c, "owner_id is required")
 	}
 	group := &repository.Group{
 		Name:      input.Name,
@@ -139,11 +133,10 @@ func (h *GroupHandler) Create(c fiber.Ctx) error {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	err := h.repo.Create(c.Context(), group)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	if err := h.repo.Create(c.Context(), group); err != nil {
+		return repository.Internal(c, "internal server error")
 	}
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "group created successfully", group))
+	return repository.Created(c, "group created successfully", group)
 }
 
 // UpdateGroupRequest represents a request to update a group
@@ -154,32 +147,32 @@ type UpdateGroupRequest struct {
 }
 
 // Update godoc
-// @Summary Update group
-// @Description Update a group's properties by id
-// @Tags groups
-// @Accept json
-// @Produce json
-// @Param id path string true "Group ID"
-// @Param body body UpdateGroupRequest true "Group update request"
-// @Success 200 {object} repository.Response
-// @Failure 400 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Router /groups/{id} [put]
-// @Security BearerAuth
+// @Summary      Update group
+// @Description  Update a group's properties by id
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        id   path     string             true "Group ID"
+// @Param        body body     UpdateGroupRequest true "Group update request"
+// @Success      200  {object} repository.Response[repository.Group]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
+// @Security     BearerAuth
+// @Router       /groups/{id} [put]
 func (h *GroupHandler) Update(c fiber.Ctx) error {
 	var input UpdateGroupRequest
 	if err := c.Bind().Body(&input); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid request body", nil))
+		return repository.BadRequest(c, "invalid request body")
 	}
 
-	group_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	groupID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.BadRequest(c, err.Error())
 	}
 
-	group, err := h.repo.GetByID(c.Context(), group_id)
+	group, err := h.repo.GetByID(c.Context(), groupID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
 
 	if input.Name != "" {
@@ -193,35 +186,33 @@ func (h *GroupHandler) Update(c fiber.Ctx) error {
 	}
 	group.UpdatedAt = time.Now()
 
-	err = h.repo.Update(c.Context(), group_id, group)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	if err := h.repo.Update(c.Context(), groupID, group); err != nil {
+		return repository.Internal(c, "internal server error")
 	}
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "group updated successfully", group))
+	return repository.OK(c, "group updated successfully", group)
 }
 
 // Delete godoc
-// @Summary Delete group
-// @Description Delete a group by id
-// @Tags groups
-// @Produce json
-// @Param id path string true "Group ID"
-// @Success 200 {object} repository.Response
-// @Failure 400 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Router /groups/{id} [delete]
-// @Security BearerAuth
+// @Summary      Delete group
+// @Description  Delete a group by id
+// @Tags         groups
+// @Produce      json
+// @Param        id  path     string true "Group ID"
+// @Success      200 {object} repository.Response[repository.Empty]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
+// @Security     BearerAuth
+// @Router       /groups/{id} [delete]
 func (h *GroupHandler) Delete(c fiber.Ctx) error {
-	group_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	groupID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.BadRequest(c, err.Error())
 	}
 
-	err = h.repo.Delete(c.Context(), group_id)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	if err := h.repo.Delete(c.Context(), groupID); err != nil {
+		return repository.Internal(c, "internal server error")
 	}
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "group deleted successfully", nil))
+	return repository.Ack(c, "group deleted successfully")
 }
 
 // InviteMemberRequest represents a request to invite a member to a group
@@ -230,69 +221,65 @@ type InviteMemberRequest struct {
 }
 
 // InviteMember godoc
-// @Summary Invite member to group
-// @Description Invite a member to a group (only owner can invite)
-// @Tags groups
-// @Accept json
-// @Produce json
-// @Param id path string true "Group ID"
-// @Param body body InviteMemberRequest true "Invite member request"
-// @Success 200 {object} repository.Response
-// @Failure 400 {object} repository.Response
-// @Failure 401 {object} repository.Response
-// @Failure 403 {object} repository.Response
-// @Failure 404 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Router /groups/{id}/invite [post]
-// @Security BearerAuth
+// @Summary      Invite member to group
+// @Description  Invite a member to a group (only owner can invite)
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        id   path     string              true "Group ID"
+// @Param        body body     InviteMemberRequest true "Invite member request"
+// @Success      200  {object} repository.Response[repository.Group]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      401  {object} repository.Response[repository.Empty]
+// @Failure      403  {object} repository.Response[repository.Empty]
+// @Failure      404  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
+// @Security     BearerAuth
+// @Router       /groups/{id}/invite [post]
 func (h *GroupHandler) InviteMember(c fiber.Ctx) error {
-	group_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	groupID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid group id", nil))
+		return repository.BadRequest(c, "invalid group id")
 	}
 
 	var req InviteMemberRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid request body", nil))
+		return repository.BadRequest(c, "invalid request body")
 	}
 
 	memberObjID, err := bson.ObjectIDFromHex(req.MemberID)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid member id", nil))
+		return repository.BadRequest(c, "invalid member id")
 	}
 
-	group, err := h.repo.GetByID(c.Context(), group_id)
+	group, err := h.repo.GetByID(c.Context(), groupID)
 	if err != nil || group == nil {
-		return c.Status(http.StatusNotFound).JSON(repository.NewResponse("error", "group not found", nil))
+		return repository.NotFound(c, "group not found")
 	}
 
-	// Assume user ID is available in locals (e.g. set by middleware)
 	ownerID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.Unauthorized(c, err.Error())
 	}
 
-	// Only owner can invite
 	if group.OwnerID != ownerID {
-		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can invite members", nil))
+		return repository.Forbidden(c, "only the owner can invite members")
 	}
 
-	// Do not add member if already exists
 	for _, id := range group.MemberIDs {
 		if id == memberObjID {
-			return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "member already in group", nil))
+			return repository.BadRequest(c, "member already in group")
 		}
 	}
 
 	group.MemberIDs = append(group.MemberIDs, memberObjID)
 	group.UpdatedAt = time.Now()
 
-	err = h.repo.Update(c.Context(), group_id, group)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to add member", nil))
+	if err := h.repo.Update(c.Context(), groupID, group); err != nil {
+		return repository.Internal(c, "failed to add member")
 	}
 
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "member invited successfully", group))
+	return repository.OK(c, "member invited successfully", group)
 }
 
 // RemoveMemberRequest represents a request to remove a member from a group
@@ -301,73 +288,69 @@ type RemoveMemberRequest struct {
 }
 
 // RemoveMember godoc
-// @Summary Remove member from group
-// @Description Remove a member from a group (only owner can remove)
-// @Tags groups
-// @Accept json
-// @Produce json
-// @Param id path string true "Group ID"
-// @Param body body RemoveMemberRequest true "Remove member request"
-// @Success 200 {object} repository.Response
-// @Failure 400 {object} repository.Response
-// @Failure 401 {object} repository.Response
-// @Failure 403 {object} repository.Response
-// @Failure 404 {object} repository.Response
-// @Failure 500 {object} repository.Response
-// @Router /groups/{id}/remove [post]
-// @Security BearerAuth
+// @Summary      Remove member from group
+// @Description  Remove a member from a group (only owner can remove)
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        id   path     string              true "Group ID"
+// @Param        body body     RemoveMemberRequest true "Remove member request"
+// @Success      200  {object} repository.Response[repository.Group]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      401  {object} repository.Response[repository.Empty]
+// @Failure      403  {object} repository.Response[repository.Empty]
+// @Failure      404  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
+// @Security     BearerAuth
+// @Router       /groups/{id}/remove [post]
 func (h *GroupHandler) RemoveMember(c fiber.Ctx) error {
-	group_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	groupID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid group id", nil))
+		return repository.BadRequest(c, "invalid group id")
 	}
 
 	var req RemoveMemberRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid request body", nil))
+		return repository.BadRequest(c, "invalid request body")
 	}
 
 	memberObjID, err := bson.ObjectIDFromHex(req.MemberID)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid member id", nil))
+		return repository.BadRequest(c, "invalid member id")
 	}
 
-	group, err := h.repo.GetByID(c.Context(), group_id)
+	group, err := h.repo.GetByID(c.Context(), groupID)
 	if err != nil || group == nil {
-		return c.Status(http.StatusNotFound).JSON(repository.NewResponse("error", "group not found", nil))
+		return repository.NotFound(c, "group not found")
 	}
 
-	// Assume user ID is available in locals (e.g. set by middleware)
 	ownerID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.Unauthorized(c, err.Error())
 	}
 
-	// Only owner can remove
 	if group.OwnerID != ownerID {
-		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can remove members", nil))
+		return repository.Forbidden(c, "only the owner can remove members")
 	}
 
-	// Remove the member from the list
 	found := false
 	newMembers := make([]bson.ObjectID, 0, len(group.MemberIDs))
 	for _, id := range group.MemberIDs {
 		if id == memberObjID {
 			found = true
-			continue // skip this member
+			continue
 		}
 		newMembers = append(newMembers, id)
 	}
 	if !found {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "member not found in group", nil))
+		return repository.BadRequest(c, "member not found in group")
 	}
 
 	group.MemberIDs = newMembers
 	group.UpdatedAt = time.Now()
 
-	err = h.repo.Update(c.Context(), group_id, group)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to remove member", nil))
+	if err := h.repo.Update(c.Context(), groupID, group); err != nil {
+		return repository.Internal(c, "failed to remove member")
 	}
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "member removed successfully", group))
+	return repository.OK(c, "member removed successfully", group)
 }

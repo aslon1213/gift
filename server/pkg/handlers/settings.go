@@ -86,18 +86,18 @@ type SettingsResponse struct {
 }
 
 // Get returns server identity, stats and the authenticated user's profile.
-// @Summary Get settings snapshot
-// @Description Returns server identity (host/uptime/version), runtime stats and the authenticated user's profile
-// @Tags settings
-// @Produce json
-// @Success 200 {object} handlers.SettingsResponse
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /api/v1/settings [get]
+// @Summary      Get settings snapshot
+// @Description  Returns server identity (host/uptime/version), runtime stats and the authenticated user's profile
+// @Tags         settings
+// @Produce      json
+// @Success      200 {object} repository.Response[handlers.SettingsResponse]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
+// @Router       /api/v1/settings [get]
 func (h *SettingsHandler) Get(c fiber.Ctx) error {
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		return repository.Unauthorized(c, "unauthorized")
 	}
 	ctx := context.Background()
 
@@ -165,7 +165,7 @@ func (h *SettingsHandler) Get(c fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(fiber.StatusOK).JSON(resp)
+	return repository.OK(c, "settings fetched", resp)
 }
 
 // formatUptime pretty-prints a duration as "12d 04h 17m" / "04h 17m 32s".
@@ -185,39 +185,35 @@ func formatUptime(d time.Duration) string {
 }
 
 func (h *SettingsHandler) exportDataAsJSON(c fiber.Ctx) error {
-	// dump all collections from mongodatabase
 	collections, err := h.db.ListCollectionNames(context.Background(), bson.M{})
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to list collections", nil))
+		return repository.Internal(c, "failed to list collections")
 	}
 
-	all_data := make([]interface{}, 0)
+	allData := make([]interface{}, 0)
 
 	for _, collection := range collections {
 		collectionData, err := h.db.Collection(collection).Find(context.Background(), bson.M{})
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to dump collection data", nil))
+			return repository.Internal(c, "failed to dump collection data")
 		}
 		data := make([]interface{}, 0)
 		err = collectionData.All(context.Background(), &data)
 		if err != nil {
 			log.Printf("failed to dump collection data: %v", err)
 		}
-		all_data = append(all_data, data)
+		allData = append(allData, data)
 	}
-	return c.Status(fiber.StatusOK).JSON(repository.NewResponse("success", "data exported successfully", all_data))
-
+	return repository.OK(c, "data exported successfully", allData)
 }
 
 // exportDataAsCSV streams a ZIP archive containing one CSV per Mongo collection.
-// Columns are the union of every document's top-level keys in that collection,
-// sorted with `_id` first. Nested values (maps/arrays) are serialized as JSON strings.
 func (h *SettingsHandler) exportDataAsCSV(c fiber.Ctx) error {
 	ctx := context.Background()
 
 	collections, err := h.db.ListCollectionNames(ctx, bson.M{})
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to list collections", nil))
+		return repository.Internal(c, "failed to list collections")
 	}
 
 	buf := &bytes.Buffer{}
@@ -227,15 +223,14 @@ func (h *SettingsHandler) exportDataAsCSV(c fiber.Ctx) error {
 		cur, err := h.db.Collection(name).Find(ctx, bson.M{})
 		if err != nil {
 			_ = zw.Close()
-			return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to read collection "+name, nil))
+			return repository.Internal(c, "failed to read collection "+name)
 		}
 		var docs []bson.M
 		if err := cur.All(ctx, &docs); err != nil {
 			_ = zw.Close()
-			return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to decode collection "+name, nil))
+			return repository.Internal(c, "failed to decode collection "+name)
 		}
 
-		// Union of keys across all docs, ordered: _id first, then sorted.
 		seen := map[string]struct{}{}
 		for _, d := range docs {
 			for k := range d {
@@ -248,7 +243,6 @@ func (h *SettingsHandler) exportDataAsCSV(c fiber.Ctx) error {
 		}
 		sort.Strings(keys)
 		if _, ok := seen["_id"]; ok {
-			// pull "_id" to the front
 			out := []string{"_id"}
 			for _, k := range keys {
 				if k != "_id" {
@@ -261,13 +255,13 @@ func (h *SettingsHandler) exportDataAsCSV(c fiber.Ctx) error {
 		w, err := zw.Create(name + ".csv")
 		if err != nil {
 			_ = zw.Close()
-			return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to create csv entry", nil))
+			return repository.Internal(c, "failed to create csv entry")
 		}
 		cw := csv.NewWriter(w)
 		if len(keys) > 0 {
 			if err := cw.Write(keys); err != nil {
 				_ = zw.Close()
-				return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to write csv header", nil))
+				return repository.Internal(c, "failed to write csv header")
 			}
 			for _, d := range docs {
 				row := make([]string, len(keys))
@@ -276,19 +270,19 @@ func (h *SettingsHandler) exportDataAsCSV(c fiber.Ctx) error {
 				}
 				if err := cw.Write(row); err != nil {
 					_ = zw.Close()
-					return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to write csv row", nil))
+					return repository.Internal(c, "failed to write csv row")
 				}
 			}
 		}
 		cw.Flush()
 		if err := cw.Error(); err != nil {
 			_ = zw.Close()
-			return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "csv flush failed", nil))
+			return repository.Internal(c, "csv flush failed")
 		}
 	}
 
 	if err := zw.Close(); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to finalize zip", nil))
+		return repository.Internal(c, "failed to finalize zip")
 	}
 
 	filename := fmt.Sprintf("gift-export-%s.zip", time.Now().UTC().Format("20060102-150405"))
@@ -297,8 +291,7 @@ func (h *SettingsHandler) exportDataAsCSV(c fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).Send(buf.Bytes())
 }
 
-// csvCell renders any bson value as a single CSV cell. ObjectIDs → hex,
-// times → RFC3339, primitives → Sprint, everything else → JSON blob.
+// csvCell renders any bson value as a single CSV cell.
 func csvCell(v interface{}) string {
 	switch x := v.(type) {
 	case nil:
@@ -312,7 +305,6 @@ func csvCell(v interface{}) string {
 	case bool, int, int32, int64, float32, float64:
 		return fmt.Sprint(x)
 	default:
-		// bson.M / bson.A / slice — marshal as extended JSON for round-trippability
 		if b, err := bson.MarshalExtJSON(v, false, false); err == nil {
 			return string(b)
 		}
@@ -325,20 +317,20 @@ func csvCell(v interface{}) string {
 // @Description  Export all collections data from the database in JSON or CSV format
 // @Tags         settings
 // @Produce      json
-// @Param        format  query     string  false  "Export format: json or csv"  Enums(json, csv)  default(json)
-// @Success      200     {object}  map[string]interface{}  "Success"
-// @Failure      400     {object}  map[string]string       "Invalid format"
-// @Failure      500     {object}  map[string]interface{}  "Internal server error"
+// @Param        format query    string false "Export format: json or csv" Enums(json, csv) default(json)
+// @Success      200    {object} repository.Response[any]
+// @Failure      400    {object} repository.Response[repository.Empty]
+// @Failure      500    {object} repository.Response[repository.Empty]
 // @Router       /api/v1/settings/export_data [post]
 func (h *SettingsHandler) ExportData(c fiber.Ctx) error {
-	export_to_format := c.Query("format", "json")
+	exportToFormat := c.Query("format", "json")
 
-	switch export_to_format {
+	switch exportToFormat {
 	case "json":
 		return h.exportDataAsJSON(c)
 	case "csv":
 		return h.exportDataAsCSV(c)
 	default:
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid format"})
+		return repository.BadRequest(c, "Invalid format")
 	}
 }

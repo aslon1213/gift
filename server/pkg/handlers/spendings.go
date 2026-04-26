@@ -3,7 +3,6 @@ package handlers
 import (
 	"aslon1213/gift/pkg/repository"
 	"aslon1213/gift/services"
-	"net/http"
 	"slices"
 	"strconv"
 	"time"
@@ -29,59 +28,45 @@ func NewSpendingHandler(repo *repository.SpendingRepository, groupRepo *reposito
 // @Tags         spendings
 // @Accept       json
 // @Produce      json
-// @Param        user_id query    string false "User ID (hex)"
-// @Param        group_id query   string false "Group ID (hex)"
-// @Param        category query   string false "Category"
+// @Param        user_id    query string false "User ID (hex)"
+// @Param        group_id   query string false "Group ID (hex)"
+// @Param        category   query string false "Category"
 // @Param        start_date query string false "Start date (RFC3339)"
-// @Param        end_date query   string false "End date (RFC3339)"
-// @Param        limit query      int    false "Limit"
-// @Param        offset query     int    false "Offset"
-// @Success      200 {object}     repository.Response
-// @Failure      500 {object}     repository.Response
+// @Param        end_date   query string false "End date (RFC3339)"
+// @Param        limit      query int    false "Limit"
+// @Param        offset     query int    false "Offset"
+// @Success      200 {object} repository.Response[[]repository.Spending]
+// @Failure      500 {object} repository.Response[repository.Empty]
 // @Router       /spendings [get]
 func (h *SpendingHandler) Query(c fiber.Ctx) error {
-
-	// can be queried by user_id, group_id, category, start_date, end_date
-	// can be sorted by amount, date
 	query := bson.M{}
-	user_id, err := bson.ObjectIDFromHex(c.Query("user_id"))
-	if err == nil {
-		query["user_id"] = user_id
+	if userID, err := bson.ObjectIDFromHex(c.Query("user_id")); err == nil {
+		query["user_id"] = userID
 	}
-	group_id, err := bson.ObjectIDFromHex(c.Query("group_id"))
-	if err == nil {
-		query["group_id"] = group_id
+	if groupID, err := bson.ObjectIDFromHex(c.Query("group_id")); err == nil {
+		query["group_id"] = groupID
 	}
-	category := c.Query("category")
-	if category != "" {
+	if category := c.Query("category"); category != "" {
 		query["category"] = category
 	}
-	start_date, err := time.Parse(time.RFC3339, c.Query("start_date"))
-	if err == nil {
-		query["date"] = bson.M{"$gte": start_date}
+	if startDate, err := time.Parse(time.RFC3339, c.Query("start_date")); err == nil {
+		query["date"] = bson.M{"$gte": startDate}
 	}
-	end_date, err := time.Parse(time.RFC3339, c.Query("end_date"))
-	if err == nil {
-		query["date"] = bson.M{"$lte": end_date}
+	if endDate, err := time.Parse(time.RFC3339, c.Query("end_date")); err == nil {
+		query["date"] = bson.M{"$lte": endDate}
 	}
-	// sort_by := c.Query("sort_by")
-	// if sort_by != "" {
-	// 	query["sort_by"] = sort_by
-	// }
-	limit, err := strconv.Atoi(c.Query("limit"))
-	if err == nil {
+	if limit, err := strconv.Atoi(c.Query("limit")); err == nil {
 		query["limit"] = limit
 	}
-	offset, err := strconv.Atoi(c.Query("offset"))
-	if err == nil {
+	if offset, err := strconv.Atoi(c.Query("offset")); err == nil {
 		query["offset"] = offset
 	}
 
 	spendings, err := h.repo.Query(c.Context(), query)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "spendings fetched successfully", spendings))
+	return repository.OK(c, "spendings fetched successfully", spendings)
 }
 
 // GetByID godoc
@@ -90,22 +75,22 @@ func (h *SpendingHandler) Query(c fiber.Ctx) error {
 // @Tags         spendings
 // @Accept       json
 // @Produce      json
-// @Param        id   path      string true  "Spending ID (hex)"
-// @Success      200  {object}  repository.Response
-// @Failure      400  {object}  repository.Response
-// @Failure      500  {object}  repository.Response
+// @Param        id  path     string true "Spending ID (hex)"
+// @Success      200 {object} repository.Response[repository.Spending]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
 // @Router       /spendings/{id} [get]
 func (h *SpendingHandler) GetByID(c fiber.Ctx) error {
-	spending_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	spendingID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.BadRequest(c, err.Error())
 	}
 
-	spending, err := h.repo.GetByID(c.Context(), spending_id)
+	spending, err := h.repo.GetByID(c.Context(), spendingID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "spending fetched successfully", spending))
+	return repository.OK(c, "spending fetched successfully", spending)
 }
 
 // CreateSpendingRequest represents the request body for creating a spending
@@ -125,26 +110,25 @@ type CreateSpendingRequest struct {
 // @Accept       json
 // @Produce      json
 // @Param        body body     CreateSpendingRequest true "Spending data"
-// @Success      200  {object} repository.Response
-// @Failure      400  {object} repository.Response
-// @Failure      403  {object} repository.Response
-// @Failure      404  {object} repository.Response
-// @Failure      500  {object} repository.Response
+// @Success      201  {object} repository.Response[repository.Spending]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      403  {object} repository.Response[repository.Empty]
+// @Failure      404  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
 // @Security     ApiKeyAuth
 // @Router       /spendings [post]
 func (h *SpendingHandler) Create(c fiber.Ctx) error {
-
-	user_id, err := services.GetUserIDFromContext(c)
+	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.Unauthorized(c, err.Error())
 	}
 
 	var input CreateSpendingRequest
 	if err := c.Bind().Body(&input); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid request body", nil))
+		return repository.BadRequest(c, "invalid request body")
 	}
 	if input.Amount <= 0 {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "amount must be greater than 0", nil))
+		return repository.BadRequest(c, "amount must be greater than 0")
 	}
 	if input.Currency == "" {
 		input.Currency = "UZS"
@@ -157,23 +141,21 @@ func (h *SpendingHandler) Create(c fiber.Ctx) error {
 	}
 
 	if input.GroupID.IsZero() {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "group_id is required", nil))
+		return repository.BadRequest(c, "group_id is required")
 	}
-	// check if the group exists and the user is a member of the group
 	group, err := h.groupRepo.GetByID(c.Context(), input.GroupID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
 	if group == nil {
-		return c.Status(http.StatusNotFound).JSON(repository.NewResponse("error", "group not found", nil))
+		return repository.NotFound(c, "group not found")
 	}
-	// check if the user is a member of the group
-	if !slices.Contains(group.MemberIDs, user_id) {
-		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "user is not a member of the group", nil))
+	if !slices.Contains(group.MemberIDs, userID) {
+		return repository.Forbidden(c, "user is not a member of the group")
 	}
 
 	spending := &repository.Spending{
-		UserID:      user_id,
+		UserID:      userID,
 		GroupID:     input.GroupID,
 		Amount:      input.Amount,
 		Currency:    input.Currency,
@@ -183,24 +165,20 @@ func (h *SpendingHandler) Create(c fiber.Ctx) error {
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
-	err = h.repo.Create(c.Context(), spending)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	if err := h.repo.Create(c.Context(), spending); err != nil {
+		return repository.Internal(c, "internal server error")
 	}
 
-	// --- Update user balance (subtract amount) ---
-	// First, retrieve current user for balance
-	user, err := h.userRepo.GetByID(c.Context(), user_id)
+	user, err := h.userRepo.GetByID(c.Context(), userID)
 	if err != nil || user == nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to get user for balance update", nil))
+		return repository.Internal(c, "failed to get user for balance update")
 	}
 	newBalance := user.Balance - input.Amount
-	if err := h.userRepo.UpdateBalance(c.Context(), user_id, newBalance); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to update user balance", nil))
+	if err := h.userRepo.UpdateBalance(c.Context(), userID, newBalance); err != nil {
+		return repository.Internal(c, "failed to update user balance")
 	}
-	// --- end user balance update
 
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "spending created successfully", spending))
+	return repository.Created(c, "spending created successfully", spending)
 }
 
 // UpdateSpendingRequest represents the request body for updating a spending
@@ -218,51 +196,47 @@ type UpdateSpendingRequest struct {
 // @Tags         spendings
 // @Accept       json
 // @Produce      json
-// @Param        id   path      string true  "Spending ID (hex)"
-// @Param        body body      UpdateSpendingRequest true "Spending fields to update"
-// @Success      200  {object}  repository.Response
-// @Failure      400  {object}  repository.Response
-// @Failure      401  {object}  repository.Response
-// @Failure      403  {object}  repository.Response
-// @Failure      404  {object}  repository.Response
-// @Failure      500  {object}  repository.Response
+// @Param        id   path     string                 true "Spending ID (hex)"
+// @Param        body body     UpdateSpendingRequest  true "Spending fields to update"
+// @Success      200  {object} repository.Response[repository.Spending]
+// @Failure      400  {object} repository.Response[repository.Empty]
+// @Failure      401  {object} repository.Response[repository.Empty]
+// @Failure      403  {object} repository.Response[repository.Empty]
+// @Failure      404  {object} repository.Response[repository.Empty]
+// @Failure      500  {object} repository.Response[repository.Empty]
 // @Security     ApiKeyAuth
 // @Router       /spendings/{id} [put]
 func (h *SpendingHandler) Update(c fiber.Ctx) error {
-	// Get user_id from locals (set by middleware)
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.Unauthorized(c, err.Error())
 	}
 
 	var input UpdateSpendingRequest
 	if err := c.Bind().Body(&input); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "invalid request body", nil))
+		return repository.BadRequest(c, "invalid request body")
 	}
 
-	spending_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	spendingID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.BadRequest(c, err.Error())
 	}
 
-	spending, err := h.repo.GetByID(c.Context(), spending_id)
+	spending, err := h.repo.GetByID(c.Context(), spendingID)
 	if err != nil || spending == nil {
-		return c.Status(http.StatusNotFound).JSON(repository.NewResponse("error", "spending not found", nil))
+		return repository.NotFound(c, "spending not found")
 	}
 
-	// Only the user who created (owner) can edit
 	if spending.UserID != userID {
-		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can edit this spending", nil))
+		return repository.Forbidden(c, "only the owner can edit this spending")
 	}
 
-	// Cache the old amount for balance correction logic
 	oldAmount := spending.Amount
 
 	if input.Amount > 0 {
 		spending.Amount = input.Amount
 	} else if input.Amount != 0 {
-		// Only reject if user explicitly tries to set to <= 0
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", "amount must be greater than 0", nil))
+		return repository.BadRequest(c, "amount must be greater than 0")
 	}
 	if input.Currency != "" {
 		spending.Currency = input.Currency
@@ -274,24 +248,20 @@ func (h *SpendingHandler) Update(c fiber.Ctx) error {
 		spending.Date = input.Date
 	}
 
-	err = h.repo.Update(c.Context(), spending_id, spending)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	if err := h.repo.Update(c.Context(), spendingID, spending); err != nil {
+		return repository.Internal(c, "internal server error")
 	}
 
-	// --- Update user balance (correct for new/old amount) ---
 	user, err := h.userRepo.GetByID(c.Context(), userID)
 	if err != nil || user == nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to get user for balance update", nil))
+		return repository.Internal(c, "failed to get user for balance update")
 	}
-	// To "reverse out" old amount and subtract new: balance = balance + oldAmount - newAmount
 	newBalance := user.Balance + oldAmount - spending.Amount
 	if err := h.userRepo.UpdateBalance(c.Context(), userID, newBalance); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to update user balance", nil))
+		return repository.Internal(c, "failed to update user balance")
 	}
-	// --- end user balance update
 
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "spending updated successfully", spending))
+	return repository.OK(c, "spending updated successfully", spending)
 }
 
 // Delete godoc
@@ -300,55 +270,49 @@ func (h *SpendingHandler) Update(c fiber.Ctx) error {
 // @Tags         spendings
 // @Accept       json
 // @Produce      json
-// @Param        id   path      string true  "Spending ID (hex)"
-// @Success      200  {object}  repository.Response
-// @Failure      400  {object}  repository.Response
-// @Failure      401  {object}  repository.Response
-// @Failure      403  {object}  repository.Response
-// @Failure      404  {object}  repository.Response
-// @Failure      500  {object}  repository.Response
+// @Param        id  path     string true "Spending ID (hex)"
+// @Success      200 {object} repository.Response[repository.Empty]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      403 {object} repository.Response[repository.Empty]
+// @Failure      404 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
 // @Security     ApiKeyAuth
 // @Router       /spendings/{id} [delete]
 func (h *SpendingHandler) Delete(c fiber.Ctx) error {
-	// Get user_id from locals (set by middleware)
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.Unauthorized(c, err.Error())
 	}
 
-	spending_id, err := bson.ObjectIDFromHex(c.Params("id"))
+	spendingID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.BadRequest(c, err.Error())
 	}
 
-	spending, err := h.repo.GetByID(c.Context(), spending_id)
+	spending, err := h.repo.GetByID(c.Context(), spendingID)
 	if err != nil || spending == nil {
-		return c.Status(http.StatusNotFound).JSON(repository.NewResponse("error", "spending not found", nil))
+		return repository.NotFound(c, "spending not found")
 	}
 
-	// Only the user who created (owner) can delete
 	if spending.UserID != userID {
-		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can delete this spending", nil))
+		return repository.Forbidden(c, "only the owner can delete this spending")
 	}
 
-	err = h.repo.Delete(c.Context(), spending_id)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	if err := h.repo.Delete(c.Context(), spendingID); err != nil {
+		return repository.Internal(c, "internal server error")
 	}
 
-	// --- Update user balance (add back deleted spending amount) ---
 	user, err := h.userRepo.GetByID(c.Context(), userID)
 	if err != nil || user == nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to get user for balance update", nil))
+		return repository.Internal(c, "failed to get user for balance update")
 	}
-	// Balance = balance + deletedAmount
 	newBalance := user.Balance + spending.Amount
 	if err := h.userRepo.UpdateBalance(c.Context(), userID, newBalance); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "failed to update user balance", nil))
+		return repository.Internal(c, "failed to update user balance")
 	}
-	// --- end user balance update
 
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "spending deleted successfully", nil))
+	return repository.Ack(c, "spending deleted successfully")
 }
 
 // LinkBudget godoc
@@ -357,63 +321,18 @@ func (h *SpendingHandler) Delete(c fiber.Ctx) error {
 // @Tags         spendings
 // @Accept       json
 // @Produce      json
-// @Param        id        path      string true  "Spending ID (hex)"
-// @Param        budget_id path      string true  "Budget ID (hex)"
-// @Success      200  {object}  repository.Response
-// @Failure      400  {object}  repository.Response
-// @Failure      401  {object}  repository.Response
-// @Failure      403  {object}  repository.Response
-// @Failure      404  {object}  repository.Response
-// @Failure      500  {object}  repository.Response
+// @Param        id        path string true "Spending ID (hex)"
+// @Param        budget_id path string true "Budget ID (hex)"
+// @Success      200 {object} repository.Response[repository.Empty]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      403 {object} repository.Response[repository.Empty]
+// @Failure      404 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
 // @Security     ApiKeyAuth
 // @Router       /api/v1/spendings/{id}/budgets/{budget_id}/link [post]
 func (h *SpendingHandler) LinkBudget(c fiber.Ctx) error {
-	userID, err := services.GetUserIDFromContext(c)
-	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", err.Error(), nil))
-	}
-
-	spendingID, err := bson.ObjectIDFromHex(c.Params("id"))
-	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
-	}
-
-	budgetID, err := bson.ObjectIDFromHex(c.Params("budget_id"))
-	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
-	}
-
-	// check first if spending and budget are the same person
-	spending, err := h.repo.GetByID(c.Context(), spendingID)
-	if err != nil || spending == nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
-	}
-	if spending.UserID != userID {
-		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can link this spending", nil))
-	}
-
-	budget, err := h.budgetRepo.GetByID(c.Context(), budgetID)
-	if err != nil || budget == nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
-	}
-	if budget.UserID != userID {
-		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can link this budget", nil))
-	}
-
-	// link the budget
-	err = h.repo.LinkBudget(c.Context(), spendingID, budgetID)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
-	}
-	// -- update the budget balance as well
-	budget.Amount += spending.Amount
-	err = h.budgetRepo.Update(c.Context(), budgetID, budget)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
-	}
-	// -- end budget balance update
-
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "budget linked successfully", nil))
+	return h.toggleBudgetLink(c, true)
 }
 
 // UnlinkBudget godoc
@@ -422,62 +341,71 @@ func (h *SpendingHandler) LinkBudget(c fiber.Ctx) error {
 // @Tags         spendings
 // @Accept       json
 // @Produce      json
-// @Param        id        path      string true  "Spending ID (hex)"
-// @Param        budget_id path      string true  "Budget ID (hex)"
-// @Success      200  {object}  repository.Response
-// @Failure      400  {object}  repository.Response
-// @Failure      401  {object}  repository.Response
-// @Failure      403  {object}  repository.Response
-// @Failure      404  {object}  repository.Response
-// @Failure      500  {object}  repository.Response
+// @Param        id        path string true "Spending ID (hex)"
+// @Param        budget_id path string true "Budget ID (hex)"
+// @Success      200 {object} repository.Response[repository.Empty]
+// @Failure      400 {object} repository.Response[repository.Empty]
+// @Failure      401 {object} repository.Response[repository.Empty]
+// @Failure      403 {object} repository.Response[repository.Empty]
+// @Failure      404 {object} repository.Response[repository.Empty]
+// @Failure      500 {object} repository.Response[repository.Empty]
 // @Security     ApiKeyAuth
 // @Router       /api/v1/spendings/{id}/budgets/{budget_id}/unlink [post]
 func (h *SpendingHandler) UnlinkBudget(c fiber.Ctx) error {
+	return h.toggleBudgetLink(c, false)
+}
+
+func (h *SpendingHandler) toggleBudgetLink(c fiber.Ctx, link bool) error {
+	verb := "link"
+	if !link {
+		verb = "unlink"
+	}
+
 	userID, err := services.GetUserIDFromContext(c)
 	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.Unauthorized(c, err.Error())
 	}
 
 	spendingID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.BadRequest(c, err.Error())
 	}
 
 	budgetID, err := bson.ObjectIDFromHex(c.Params("budget_id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+		return repository.BadRequest(c, err.Error())
 	}
 
-	// check first if spending and budget are the same person
 	spending, err := h.repo.GetByID(c.Context(), spendingID)
 	if err != nil || spending == nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
 	if spending.UserID != userID {
-		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can unlink this spending", nil))
+		return repository.Forbidden(c, "only the owner can "+verb+" this spending")
 	}
 
 	budget, err := h.budgetRepo.GetByID(c.Context(), budgetID)
 	if err != nil || budget == nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+		return repository.Internal(c, "internal server error")
 	}
 	if budget.UserID != userID {
-		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can unlink this budget", nil))
+		return repository.Forbidden(c, "only the owner can "+verb+" this budget")
 	}
 
-	// unlink the budget
-	err = h.repo.UnlinkBudget(c.Context(), spendingID, budgetID)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	if link {
+		if err := h.repo.LinkBudget(c.Context(), spendingID, budgetID); err != nil {
+			return repository.Internal(c, "internal server error")
+		}
+		budget.Amount += spending.Amount
+	} else {
+		if err := h.repo.UnlinkBudget(c.Context(), spendingID, budgetID); err != nil {
+			return repository.Internal(c, "internal server error")
+		}
+		budget.Amount -= spending.Amount
 	}
 
-	// -- update the budget balance as well
-	budget.Amount -= spending.Amount
-	err = h.budgetRepo.Update(c.Context(), budgetID, budget)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	if err := h.budgetRepo.Update(c.Context(), budgetID, budget); err != nil {
+		return repository.Internal(c, "internal server error")
 	}
-	// -- end budget balance update
-
-	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "budget unlinked successfully", nil))
+	return repository.Ack(c, "budget "+verb+"ed successfully")
 }

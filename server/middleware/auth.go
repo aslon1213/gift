@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"aslon1213/gift/configs"
+	"aslon1213/gift/pkg/repository"
 	"strings"
 
 	jwtware "github.com/gofiber/contrib/v3/jwt"
@@ -26,11 +27,7 @@ func Protected() fiber.Handler {
 				message = "Missing or malformed JWT"
 			}
 
-			return c.Status(status).JSON(fiber.Map{
-				"status":  "error",
-				"message": message,
-				"data":    nil,
-			})
+			return repository.Fail(c, status, message)
 		},
 	})
 }

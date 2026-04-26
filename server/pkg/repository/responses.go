@@ -2,76 +2,65 @@ package repository
 
 import "github.com/gofiber/fiber/v3"
 
-type Response struct {
-	Status  string      `json:"status"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+// Response is the unified envelope returned by every handler.
+// T is the payload type, captured into Swagger via generic annotations
+// (e.g. `repository.Response[repository.Budget]`), so each endpoint gets
+// a concrete schema in the OpenAPI spec while the runtime stays uniform.
+type Response[T any] struct {
+	Status  string `json:"status"  example:"success"`
+	Message string `json:"message" example:"ok"`
+	Data    T      `json:"data,omitempty"`
 }
 
-func NewResponse(status string, message string, data interface{}) *Response {
-	return &Response{Status: status, Message: message, Data: data}
+// Empty is the payload type for endpoints with no data (4xx/5xx, deletes,
+// link/unlink). Using it keeps `Response[Empty]` swaggerable.
+type Empty struct{}
+
+// --- success helpers ----------------------------------------------------
+
+func OK[T any](c fiber.Ctx, msg string, data T) error {
+	return c.Status(fiber.StatusOK).JSON(Response[T]{Status: "success", Message: msg, Data: data})
 }
 
-func (r *Response) Success(c fiber.Ctx, data interface{}) error {
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":  "success",
-		"message": "success",
-		"data":    data,
-	})
+func Created[T any](c fiber.Ctx, msg string, data T) error {
+	return c.Status(fiber.StatusCreated).JSON(Response[T]{Status: "success", Message: msg, Data: data})
 }
 
-func (r *Response) Error(c fiber.Ctx, message string) error {
-	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-		"status":  "error",
-		"message": message,
-		"data":    nil,
-	})
+// Ack is 200 with no payload — for deletes, link/unlink, etc.
+func Ack(c fiber.Ctx, msg string) error {
+	return c.Status(fiber.StatusOK).JSON(Response[Empty]{Status: "success", Message: msg, Data: Empty{}})
 }
 
-func (r *Response) NotFound(c fiber.Ctx, message string) error {
-	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-		"status":  "not found",
-		"message": message,
-		"data":    nil,
-	})
+// --- error helpers (always payload-less) --------------------------------
+
+func Fail(c fiber.Ctx, code int, msg string) error {
+	return c.Status(code).JSON(Response[Empty]{Status: "error", Message: msg, Data: Empty{}})
 }
 
-func (r *Response) BadRequest(c fiber.Ctx, message string) error {
-	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-		"status":  "bad request",
-		"message": message,
-		"data":    nil,
-	})
+func BadRequest(c fiber.Ctx, msg string) error {
+	return Fail(c, fiber.StatusBadRequest, msg)
 }
 
-func (r *Response) InternalServerError(c fiber.Ctx, message string) error {
-	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-		"status":  "internal server error",
-		"message": message,
-		"data":    nil,
-	})
+func Unauthorized(c fiber.Ctx, msg string) error {
+	return Fail(c, fiber.StatusUnauthorized, msg)
 }
 
-func (r *Response) Unauthorized(c fiber.Ctx, message string) error {
-	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-		"status":  "unauthorized",
-		"message": message,
-		"data":    nil,
-	})
+func Forbidden(c fiber.Ctx, msg string) error {
+	return Fail(c, fiber.StatusForbidden, msg)
 }
 
-func (r *Response) Forbidden(c fiber.Ctx, message string) error {
-	return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-		"status":  "forbidden",
-		"message": message,
-		"data":    nil,
-	})
+func NotFound(c fiber.Ctx, msg string) error {
+	return Fail(c, fiber.StatusNotFound, msg)
 }
 
-func (r *Response) Conflict(c fiber.Ctx, message string) error {
-	return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-		"status":  "conflict",
-		"message": message,
-		"data":    nil,
-	})
+func Conflict(c fiber.Ctx, msg string) error {
+	return Fail(c, fiber.StatusConflict, msg)
+}
+
+func Internal(c fiber.Ctx, msg string) error {
+	return Fail(c, fiber.StatusInternalServerError, msg)
+}
+
+func NotImplemented(c fiber.Ctx, msg string) error {
+	return Fail(c, fiber.StatusNotImplemented, msg)
 }

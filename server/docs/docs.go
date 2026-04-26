@@ -24,6 +24,122 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/alerts": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "alerts"
+                ],
+                "summary": "List alerts",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "alerts"
+                ],
+                "summary": "Create alert",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/alerts/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "alerts"
+                ],
+                "summary": "Get alert by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Alert ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "alerts"
+                ],
+                "summary": "Update alert",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Alert ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "alerts"
+                ],
+                "summary": "Delete alert",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Alert ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/me": {
             "get": {
                 "description": "Retrieves the authenticated user's information",
@@ -39,24 +155,21 @@ const docTemplate = `{
                 "summary": "Get user info",
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -76,22 +189,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/repository.Budget"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Budget"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -114,7 +224,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/repository.Budget"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Budget"
                         }
                     }
                 ],
@@ -122,25 +232,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/repository.Budget"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -168,31 +278,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Budget"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -222,7 +332,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/repository.Budget"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Budget"
                         }
                     }
                 ],
@@ -230,31 +340,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Budget"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -280,31 +390,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -342,39 +452,39 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Amount decreased successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget"
                         }
                     },
                     "400": {
-                        "description": "Invalid budget id, request, or amount",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
-                        "description": "Budget not found",
+                        "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
-                        "description": "Failed to decrease amount",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -412,39 +522,39 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Amount increased successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget"
                         }
                     },
                     "400": {
-                        "description": "Invalid budget id, request, or amount",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
-                        "description": "Budget not found",
+                        "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
-                        "description": "Failed to increase amount",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -452,7 +562,6 @@ const docTemplate = `{
         },
         "/api/v1/goals": {
             "get": {
-                "description": "Returns all goals for the authenticated user",
                 "produces": [
                     "application/json"
                 ],
@@ -464,28 +573,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/repository.Goal"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Goal"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -508,7 +608,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/repository.Goal"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Goal"
                         }
                     }
                 ],
@@ -516,34 +616,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/repository.Goal"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -571,43 +662,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Goal"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -637,7 +716,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/repository.Goal"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Goal"
                         }
                     }
                 ],
@@ -645,43 +724,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Goal"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -707,46 +780,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "boolean"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -754,7 +818,6 @@ const docTemplate = `{
         },
         "/api/v1/goals/{id}/contribute": {
             "post": {
-                "description": "Adds ` + "`" + `amount` + "`" + ` to the goal's current_amount",
                 "consumes": [
                     "application/json"
                 ],
@@ -764,7 +827,7 @@ const docTemplate = `{
                 "tags": [
                     "goals"
                 ],
-                "summary": "Contribute to goal",
+                "summary": "Contribute to a goal",
                 "parameters": [
                     {
                         "type": "string",
@@ -774,12 +837,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Contribution",
+                        "description": "Contribution body",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.ContributeRequest"
+                            "$ref": "#/definitions/pkg_handlers.ContributeRequest"
                         }
                     }
                 ],
@@ -787,43 +850,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Goal"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -843,28 +900,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/repository.Income"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Income"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -888,7 +936,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/repository.Income"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Income"
                         }
                     }
                 ],
@@ -896,34 +944,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/repository.Income"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Income"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -952,43 +991,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Income"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Income"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1019,7 +1046,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/repository.Income"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Income"
                         }
                     }
                 ],
@@ -1027,52 +1054,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Income"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Income"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1099,55 +1111,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "boolean"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1167,25 +1161,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.SettingsResponse"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_SettingsResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1216,26 +1204,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-any"
                         }
                     },
                     "400": {
-                        "description": "Invalid format",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1279,37 +1262,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1353,37 +1336,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1411,19 +1394,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_User"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1452,26 +1441,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1502,7 +1484,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.UpdateUserRequest"
+                            "$ref": "#/definitions/pkg_handlers.UpdateUserRequest"
                         }
                     }
                 ],
@@ -1510,22 +1492,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1550,12 +1529,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "501": {
-                        "description": "not implemented",
+                        "description": "Not Implemented",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1581,7 +1557,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.LoginRequest"
+                            "$ref": "#/definitions/pkg_handlers.LoginRequest"
                         }
                     }
                 ],
@@ -1589,28 +1565,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.LoginResponse"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_LoginResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1635,22 +1608,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1676,7 +1646,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.RefreshRequest"
+                            "$ref": "#/definitions/pkg_handlers.RefreshRequest"
                         }
                     }
                 ],
@@ -1684,28 +1654,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.RefreshResponse"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_RefreshResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1731,7 +1698,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.RegisterRequest"
+                            "$ref": "#/definitions/pkg_handlers.RegisterRequest"
                         }
                     }
                 ],
@@ -1739,28 +1706,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.RegisterResponse"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_RegisterResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1793,25 +1757,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Group"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1840,27 +1804,27 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateGroupRequest"
+                            "$ref": "#/definitions/pkg_handlers.CreateGroupRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1894,25 +1858,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -1948,7 +1912,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.UpdateGroupRequest"
+                            "$ref": "#/definitions/pkg_handlers.UpdateGroupRequest"
                         }
                     }
                 ],
@@ -1956,19 +1920,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -2000,19 +1964,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -2050,7 +2014,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.InviteMemberRequest"
+                            "$ref": "#/definitions/pkg_handlers.InviteMemberRequest"
                         }
                     }
                 ],
@@ -2058,37 +2022,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -2126,7 +2090,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.RemoveMemberRequest"
+                            "$ref": "#/definitions/pkg_handlers.RemoveMemberRequest"
                         }
                     }
                 ],
@@ -2134,37 +2098,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -2231,13 +2195,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Spending"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -2266,39 +2230,39 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateSpendingRequest"
+                            "$ref": "#/definitions/pkg_handlers.CreateSpendingRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Spending"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -2330,19 +2294,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Spending"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -2378,7 +2342,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.UpdateSpendingRequest"
+                            "$ref": "#/definitions/pkg_handlers.UpdateSpendingRequest"
                         }
                     }
                 ],
@@ -2386,37 +2350,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Spending"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -2451,37 +2415,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/repository.Response"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
                     }
                 }
@@ -2489,307 +2453,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.ContributeRequest": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                }
-            }
-        },
-        "handlers.CreateGroupRequest": {
-            "type": "object",
-            "properties": {
-                "member_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[\"60d5ec49f99a2d3a829a7d1f\"]"
-                    ]
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Book Club"
-                },
-                "owner_id": {
-                    "type": "string",
-                    "example": "60d5ec49f99a2d3a829a7d1e"
-                }
-            }
-        },
-        "handlers.CreateSpendingRequest": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "category": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "group_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.InviteMemberRequest": {
-            "type": "object",
-            "properties": {
-                "member_id": {
-                    "type": "string",
-                    "example": "60d5ec49f99a2d3a829a7d1e"
-                }
-            }
-        },
-        "handlers.LoginRequest": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "description": "User's email\nrequired: true",
-                    "type": "string"
-                },
-                "password": {
-                    "description": "User's password\nrequired: true",
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.LoginResponse": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "description": "JWT access token",
-                    "type": "string"
-                },
-                "refresh_token": {
-                    "description": "JWT refresh token",
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.ProfileInfo": {
-            "type": "object",
-            "properties": {
-                "balance": {
-                    "type": "number"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.RefreshRequest": {
-            "type": "object",
-            "properties": {
-                "refresh_token": {
-                    "description": "Refresh Token\nrequired: true",
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.RefreshResponse": {
-            "type": "object",
-            "properties": {
-                "refresh_token": {
-                    "description": "New refresh token",
-                    "type": "string"
-                },
-                "token": {
-                    "description": "New access token",
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.RegisterRequest": {
-            "type": "object",
-            "properties": {
-                "currency": {
-                    "description": "Currency for the account\nrequired: true",
-                    "type": "string"
-                },
-                "email": {
-                    "description": "User e-mail address\nrequired: true",
-                    "type": "string"
-                },
-                "password": {
-                    "description": "Password for the account (\u003e=8 chars)\nrequired: true",
-                    "type": "string"
-                },
-                "username": {
-                    "description": "Username for the account\nrequired: true",
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.RegisterResponse": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "description": "The user's email",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "The user's ID",
-                    "type": "string"
-                },
-                "username": {
-                    "description": "The user's username",
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.RemoveMemberRequest": {
-            "type": "object",
-            "properties": {
-                "member_id": {
-                    "type": "string",
-                    "example": "60d5ec49f99a2d3a829a7d1e"
-                }
-            }
-        },
-        "handlers.ServerInfo": {
-            "type": "object",
-            "properties": {
-                "host": {
-                    "type": "string"
-                },
-                "online": {
-                    "type": "boolean"
-                },
-                "started_at": {
-                    "type": "string"
-                },
-                "uptime": {
-                    "type": "string"
-                },
-                "uptime_seconds": {
-                    "type": "integer"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.ServerStats": {
-            "type": "object",
-            "properties": {
-                "budgets": {
-                    "type": "integer"
-                },
-                "db_size_bytes": {
-                    "type": "integer"
-                },
-                "goals": {
-                    "type": "integer"
-                },
-                "goroutines": {
-                    "type": "integer"
-                },
-                "groups": {
-                    "type": "integer"
-                },
-                "mem_mb": {
-                    "type": "integer"
-                },
-                "users": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.SettingsResponse": {
-            "type": "object",
-            "properties": {
-                "profile": {
-                    "$ref": "#/definitions/handlers.ProfileInfo"
-                },
-                "server": {
-                    "$ref": "#/definitions/handlers.ServerInfo"
-                },
-                "stats": {
-                    "$ref": "#/definitions/handlers.ServerStats"
-                }
-            }
-        },
-        "handlers.UpdateGroupRequest": {
-            "type": "object",
-            "properties": {
-                "member_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[\"60d5ec49f99a2d3a829a7d1f\"]"
-                    ]
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Book Club"
-                },
-                "owner_id": {
-                    "type": "string",
-                    "example": "60d5ec49f99a2d3a829a7d1e"
-                }
-            }
-        },
-        "handlers.UpdateSpendingRequest": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "category": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.UpdateUserRequest": {
-            "description": "UpdateUserRequest contains user fields required for the update API.",
-            "type": "object",
-            "properties": {
-                "confirm_password": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "repository.Budget": {
+        "aslon1213_gift_pkg_repository.Budget": {
             "type": "object",
             "properties": {
                 "amount": {
@@ -2827,7 +2491,10 @@ const docTemplate = `{
                 }
             }
         },
-        "repository.Goal": {
+        "aslon1213_gift_pkg_repository.Empty": {
+            "type": "object"
+        },
+        "aslon1213_gift_pkg_repository.Goal": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -2862,7 +2529,33 @@ const docTemplate = `{
                 }
             }
         },
-        "repository.Income": {
+        "aslon1213_gift_pkg_repository.Group": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "member_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Income": {
             "type": "object",
             "properties": {
                 "amount": {
@@ -2894,14 +2587,662 @@ const docTemplate = `{
                 }
             }
         },
-        "repository.Response": {
+        "aslon1213_gift_pkg_repository.Response-any": {
             "type": "object",
             "properties": {
                 "data": {},
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ok"
                 },
                 "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Budget": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aslon1213_gift_pkg_repository.Budget"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Goal": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aslon1213_gift_pkg_repository.Goal"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Group": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aslon1213_gift_pkg_repository.Group"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Income": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aslon1213_gift_pkg_repository.Income"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Spending": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aslon1213_gift_pkg_repository.Spending"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_User": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aslon1213_gift_pkg_repository.User"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Budget": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.Budget"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.Empty"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Goal": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.Goal"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Group": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.Group"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Income": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.Income"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Spending": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.Spending"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.User"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-pkg_handlers_LoginResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/pkg_handlers.LoginResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-pkg_handlers_RefreshResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/pkg_handlers.RefreshResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-pkg_handlers_RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/pkg_handlers.RegisterResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-pkg_handlers_SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/pkg_handlers.SettingsResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Spending": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "budgets": {
+                    "description": "budgets link",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.User": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.ContributeRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "pkg_handlers.CreateGroupRequest": {
+            "type": "object",
+            "properties": {
+                "member_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"60d5ec49f99a2d3a829a7d1f\"]"
+                    ]
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Book Club"
+                },
+                "owner_id": {
+                    "type": "string",
+                    "example": "60d5ec49f99a2d3a829a7d1e"
+                }
+            }
+        },
+        "pkg_handlers.CreateSpendingRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.InviteMemberRequest": {
+            "type": "object",
+            "properties": {
+                "member_id": {
+                    "type": "string",
+                    "example": "60d5ec49f99a2d3a829a7d1e"
+                }
+            }
+        },
+        "pkg_handlers.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.ProfileInfo": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.RefreshRequest": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.RefreshResponse": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.RegisterRequest": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.RemoveMemberRequest": {
+            "type": "object",
+            "properties": {
+                "member_id": {
+                    "type": "string",
+                    "example": "60d5ec49f99a2d3a829a7d1e"
+                }
+            }
+        },
+        "pkg_handlers.ServerInfo": {
+            "type": "object",
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "online": {
+                    "type": "boolean"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "uptime": {
+                    "type": "string"
+                },
+                "uptime_seconds": {
+                    "type": "integer"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.ServerStats": {
+            "type": "object",
+            "properties": {
+                "budgets": {
+                    "type": "integer"
+                },
+                "db_size_bytes": {
+                    "type": "integer"
+                },
+                "goals": {
+                    "type": "integer"
+                },
+                "goroutines": {
+                    "type": "integer"
+                },
+                "groups": {
+                    "type": "integer"
+                },
+                "mem_mb": {
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "integer"
+                }
+            }
+        },
+        "pkg_handlers.SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "$ref": "#/definitions/pkg_handlers.ProfileInfo"
+                },
+                "server": {
+                    "$ref": "#/definitions/pkg_handlers.ServerInfo"
+                },
+                "stats": {
+                    "$ref": "#/definitions/pkg_handlers.ServerStats"
+                }
+            }
+        },
+        "pkg_handlers.UpdateGroupRequest": {
+            "type": "object",
+            "properties": {
+                "member_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"60d5ec49f99a2d3a829a7d1f\"]"
+                    ]
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Book Club"
+                },
+                "owner_id": {
+                    "type": "string",
+                    "example": "60d5ec49f99a2d3a829a7d1e"
+                }
+            }
+        },
+        "pkg_handlers.UpdateSpendingRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "confirm_password": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }
