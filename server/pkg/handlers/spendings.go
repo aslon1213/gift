@@ -66,6 +66,12 @@ func (h *SpendingHandler) Query(c fiber.Ctx) error {
 	if err != nil {
 		return repository.Internal(c, "internal server error")
 	}
+
+	// sort based on date
+	slices.SortFunc(spendings, func(a, b *repository.Spending) int {
+		return b.Date.Compare(a.Date)
+	})
+
 	return repository.OK(c, "spendings fetched successfully", spendings)
 }
 
