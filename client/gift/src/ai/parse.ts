@@ -2,6 +2,25 @@ import { generateText, tool } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { z } from 'zod'
 import { llm } from '../stores/llm'
+import { i18n, type Locale } from '../i18n'
+
+// Human-readable language names handed to the model so it can both *listen*
+// in the user's language and emit free-text fields (description, name) in it.
+const LANGUAGE_NAMES: Record<Locale, string> = {
+  en: 'English',
+  ru: 'Russian',
+  uz: 'Uzbek (Latin script)',
+}
+
+function languageHint(): string {
+  const code = i18n.locale.value
+  const name = LANGUAGE_NAMES[code] ?? 'English'
+  return (
+    `The speaker is talking in ${name}. ` +
+    `Transcribe and interpret the audio in ${name}, and write any free-text fields ` +
+    `(description, name) in ${name} using natural ${name} phrasing.`
+  )
+}
 
 export const SpendingDraftSchema = z.object({
   amount: z
@@ -139,7 +158,8 @@ export function parseSpendingFromAudio(audio: Blob): Promise<SpendingDraft> {
     'record_spending',
     'Record a single spending/expense from the user’s spoken message.',
     SpendingDraftSchema,
-    `Listen to the audio and call record_spending with ONLY the fields the speaker actually mentions. ` +
+    `${languageHint()} ` +
+      `Listen to the audio and call record_spending with ONLY the fields the speaker actually mentions. ` +
       `Leave anything not stated as null — do not guess. ` +
       `Specifically: never put descriptive words ("restaurant", "uber", "coffee") into the category field; ` +
       `those belong in description. Only set category when the speaker literally names one of the allowed values. ` +
@@ -153,7 +173,8 @@ export function parseBudgetFromAudio(audio: Blob): Promise<BudgetDraft> {
     'record_budget',
     'Record a category budget from the user’s spoken message.',
     BudgetDraftSchema,
-    `Listen to the audio and call record_budget with the fields it describes. ` +
+    `${languageHint()} ` +
+      `Listen to the audio and call record_budget with the fields it describes. ` +
       `Leave anything not explicitly stated as null.`,
   )
 }
@@ -164,7 +185,8 @@ export function parseGoalFromAudio(audio: Blob): Promise<GoalDraft> {
     'record_goal',
     'Record a savings goal from the user’s spoken message.',
     GoalDraftSchema,
-    `Listen to the audio and call record_goal with the fields it describes. ` +
+    `${languageHint()} ` +
+      `Listen to the audio and call record_goal with the fields it describes. ` +
       `Leave anything not explicitly stated as null. Today is ${today()}.`,
   )
 }

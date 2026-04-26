@@ -38,6 +38,10 @@ import Toast from './components/Toast.vue'
           <Icon name="target" :size="14" />
           <span>{{ t('nav.goals') }}</span>
         </router-link>
+        <router-link to="/ledger">
+          <Icon name="wallet" :size="14" />
+          <span>{{ t('nav.ledger') }}</span>
+        </router-link>
         <router-link to="/settings">
           <Icon name="settings" :size="14" />
           <span>{{ t('nav.server') }}</span>

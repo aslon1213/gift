@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { groupApi, incomeApi, spendingApi } from '../api/endpoints'
-import type { Group, Income, Spending } from '../api/types'
+import { borrowingApi, groupApi, incomeApi, lendingApi, spendingApi } from '../api/endpoints'
+import type { Credit, Group, Income, Spending } from '../api/types'
 import { auth } from '../stores/auth'
 import Icon from '../components/Icon.vue'
 import Sparkline from '../components/Sparkline.vue'
+import NotificationsSheet from '../components/NotificationsSheet.vue'
 import type { IconName } from '../components/icons'
 import { money, moneyWhole, signed, signedWhole } from '../utils/format'
 import { lastNDays, formatDay, groupBy, sumBy } from '../utils/charts'
@@ -17,8 +18,11 @@ const router = useRouter()
 const groups = ref<Group[]>([])
 const spendings = ref<Spending[]>([])
 const incomes = ref<Income[]>([])
+const borrowed = ref<Credit[]>([])
+const lent = ref<Credit[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
+const showNotifications = ref(false)
 
 const monthLabel = computed(() =>
   new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase(),
@@ -205,23 +209,92 @@ function goGroups() {
   router.push('/groups')
 }
 
+function goLedger(side: 'borrowed' | 'lent') {
+  router.push({ path: '/ledger', query: { side } })
+}
+
+// Off-book aggregates — what the screenshot's strip needs. Outstanding is the
+// sum that's still owed (amount - resolved, clipped at 0); `actual` is the
+// total principal across all records on that side; `open` counts pending
+// FinanceRequests so we can flash the red strip when amendments need review.
+interface SideTotals {
+  outstanding: number
+  actual: number
+  count: number
+  open: number
+  currency: string
+}
+
+function totalsFor(list: Credit[]): SideTotals {
+  let outstanding = 0
+  let actual = 0
+  let open = 0
+  for (const c of list) {
+    const amt = c.amount || 0
+    const res = c.resolved_amount || 0
+    actual += amt
+    outstanding += Math.max(0, amt - res)
+    for (const r of c.finance_requests ?? []) {
+      if (r.status === 'pending') open += 1
+    }
+  }
+  return {
+    outstanding,
+    actual,
+    count: list.length,
+    open,
+    currency: list[0]?.currency || currency.value,
+  }
+}
+
+const borrowedTotals = computed(() => totalsFor(borrowed.value))
+const lentTotals = computed(() => totalsFor(lent.value))
+const hasOffBook = computed(() => borrowed.value.length > 0 || lent.value.length > 0)
+
+// Pending requests where I'm the *reviewer* (other side opened the request).
+// Drives the bell badge — requests I opened myself live on the credit detail
+// screen as "awaiting them" and don't belong in the inbox count.
+const pendingForMe = computed(() => {
+  const me = auth.userIdFromToken() ?? ''
+  let n = 0
+  for (const c of [...borrowed.value, ...lent.value]) {
+    for (const r of c.finance_requests ?? []) {
+      if (r.status === 'pending' && r.requested_by !== me) n += 1
+    }
+  }
+  return n
+})
+
 onMounted(async () => {
   try {
     const uid = auth.userIdFromToken()
-    const [g, s, i] = await Promise.all([
+    const [g, s, i, b, l] = await Promise.all([
       groupApi.list(),
       uid ? spendingApi.query({ user_id: uid }) : spendingApi.query(),
       incomeApi.list().catch(() => [] as Income[]),
+      borrowingApi.list().catch(() => [] as Credit[]),
+      lendingApi.list().catch(() => [] as Credit[]),
     ])
     groups.value = g ?? []
     spendings.value = s ?? []
     incomes.value = i ?? []
+    borrowed.value = b ?? []
+    lent.value = l ?? []
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load'
   } finally {
     loading.value = false
   }
 })
+
+// When the notifications sheet resolves a request, the returned Credit replaces
+// our local copy so the strip's open-count and the bell badge tick down without
+// a full reload.
+function onRequestResolved(updated: Credit, side: 'borrowing' | 'lending') {
+  const list = side === 'borrowing' ? borrowed : lent
+  const id = String(updated._id ?? updated.id)
+  list.value = list.value.map((c) => (String(c._id ?? c.id) === id ? updated : c))
+}
 </script>
 
 <template>
@@ -231,7 +304,17 @@ onMounted(async () => {
     <template v-else>
       <!-- Hero -->
       <div class="hero-block">
-        <p class="eyebrow">{{ t('home.good_afternoon') }}</p>
+        <div class="hero-top">
+          <p class="eyebrow" style="margin: 0">{{ t('home.good_afternoon') }}</p>
+          <button
+            class="bell-btn"
+            :aria-label="t('notifications.title')"
+            @click="showNotifications = true"
+          >
+            <Icon name="bell" :size="18" />
+            <span v-if="pendingForMe > 0" class="bell-badge">{{ pendingForMe }}</span>
+          </button>
+        </div>
         <h1 class="hero">
           {{ t('home.net_for_month', { month: monthLabel.split(' ')[0].slice(0, 3) }) }}<br />
           <em class="net-pos">{{ t('home.is_amount', { amount: signedWhole(monthNet, currency) }) }}</em>
@@ -274,6 +357,82 @@ onMounted(async () => {
         <button class="btn btn-secondary btn-lg" @click="goIncome">
           <Icon name="arrowDown" :size="18" /> {{ t('home.income') }}
         </button>
+      </div>
+
+      <!-- Off-book ledger strip -->
+      <div v-if="hasOffBook" class="section-block off-book">
+        <div class="row spread section-head">
+          <span class="eyebrow">{{ t('home.off_book_eyebrow') }}</span>
+          <button class="linklike" @click="goLedger('borrowed')">{{ t('home.open_ledger') }}</button>
+        </div>
+        <h3 class="serif">
+          {{ t('home.borrowed_amp_lent') }} <em>{{ t('home.lent_em') }}</em>
+        </h3>
+        <div class="ob-grid">
+          <button
+            class="ob-card"
+            @click="goLedger('borrowed')"
+          >
+            <div class="ob-head">
+              <span class="dot" style="background: var(--hot)"></span>
+              <span class="ob-label">{{ t('home.you_owe_label') }}</span>
+            </div>
+            <div class="ob-money" style="color: var(--hot)">
+              {{ moneyWhole(borrowedTotals.outstanding, borrowedTotals.currency) }}
+            </div>
+            <div class="ob-meta">
+              {{ t('home.of_count_rec', {
+                actual: moneyWhole(borrowedTotals.actual, borrowedTotals.currency),
+                count: borrowedTotals.count,
+              }) }}
+            </div>
+            <div class="ob-bar">
+              <div
+                class="ob-bar-fill"
+                :style="{
+                  width: (borrowedTotals.actual ? (borrowedTotals.actual - borrowedTotals.outstanding) / borrowedTotals.actual * 100 : 0) + '%',
+                  background: 'var(--hot)',
+                }"
+              ></div>
+            </div>
+            <div v-if="borrowedTotals.open > 0" class="ob-open">
+              <span class="dot" style="background: var(--hot)"></span>
+              {{ t(borrowedTotals.open === 1 ? 'home.open_amendment_one' : 'home.open_amendments_other', { n: borrowedTotals.open }) }}
+            </div>
+          </button>
+          <button
+            class="ob-card"
+            @click="goLedger('lent')"
+          >
+            <div class="ob-head">
+              <span class="dot" style="background: var(--moss)"></span>
+              <span class="ob-label">{{ t('home.owed_to_you_label') }}</span>
+            </div>
+            <div class="ob-money" style="color: var(--moss)">
+              {{ moneyWhole(lentTotals.outstanding, lentTotals.currency) }}
+            </div>
+            <div class="ob-meta">
+              {{ t('home.of_count_rec', {
+                actual: moneyWhole(lentTotals.actual, lentTotals.currency),
+                count: lentTotals.count,
+              }) }}
+            </div>
+            <div class="ob-bar">
+              <div
+                class="ob-bar-fill"
+                :style="{
+                  width: (lentTotals.actual ? (lentTotals.actual - lentTotals.outstanding) / lentTotals.actual * 100 : 0) + '%',
+                  background: 'var(--moss)',
+                }"
+              ></div>
+            </div>
+            <div v-if="lentTotals.open > 0" class="ob-open">
+              <span class="dot" style="background: var(--hot)"></span>
+              {{ t(lentTotals.open === 1 ? 'home.open_amendment_one' : 'home.open_amendments_other', { n: lentTotals.open }) }}
+            </div>
+          </button>
+        </div>
+        <div class="ob-footer">{{ t('home.off_book_footer') }}</div>
       </div>
 
       <!-- Top categories -->
@@ -360,6 +519,14 @@ onMounted(async () => {
       </div>
 
     </template>
+
+    <NotificationsSheet
+      :open="showNotifications"
+      :borrowed="borrowed"
+      :lent="lent"
+      @close="showNotifications = false"
+      @request-resolved="onRequestResolved"
+    />
   </section>
 </template>
 
@@ -372,9 +539,137 @@ onMounted(async () => {
   padding: 0 0 2px;
 }
 
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bell-btn {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bell-btn:hover {
+  color: var(--ink);
+}
+.bell-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: var(--hot);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px var(--paper);
+}
+
 .hero .net-pos {
   color: var(--moss);
   font-style: italic;
+}
+
+/* Off-book strip */
+.off-book .section-head {
+  margin-bottom: 4px;
+}
+.ob-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.ob-card {
+  text-align: left;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 14px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.15s;
+}
+.ob-card:hover {
+  border-color: var(--ink);
+}
+.ob-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ob-head .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.ob-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink-mute);
+}
+.ob-money {
+  font-family: var(--serif);
+  font-size: 28px;
+  line-height: 1;
+  margin-top: 4px;
+}
+.ob-meta {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-mute);
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+.ob-bar {
+  height: 3px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.ob-bar-fill {
+  height: 100%;
+  opacity: 0.5;
+}
+.ob-open {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--hot);
+}
+.ob-open .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.ob-footer {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-ghost);
+  letter-spacing: 0.06em;
 }
 
 /* Net worth card */

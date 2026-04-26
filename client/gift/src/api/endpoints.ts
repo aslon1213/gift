@@ -1,8 +1,9 @@
-import { api } from './client'
+import { api, requestWithStatus } from './client'
 import { auth } from '../stores/auth'
 import { server } from '../stores/server'
 import type {
   Budget,
+  Credit,
   Goal,
   Group,
   Income,
@@ -148,6 +149,102 @@ export const goalApi = {
   remove: (id: string) => api.delete<{ deleted: boolean }>(`/goals/${id}`),
   contribute: (id: string, amount: number) =>
     api.post<Goal>(`/goals/${id}/contribute`, { amount }),
+}
+
+// --- Credits (borrowings + lendings) -------------------------------------
+//
+// One Credit row is a borrowing for `to` and a lending for `from`. The two
+// sub-APIs below share an underlying collection but are queried/mutated via
+// distinct routes so the caller-must-be-X authorization rules can apply.
+//
+// Helper actions (repay/take/give/collect) and PUT/DELETE behave differently
+// for one-OID vs two-OID credits — the server returns 200 (applied) or 201
+// (FinanceRequest created, awaiting counterparty approval). Callers should
+// treat 201 as "request sent" and not optimistically reflect the new amount.
+
+// Body shapes for create — caller must send exactly one of *_user_id (hex)
+// or *_name (free-form string) for the counterparty. The other side is
+// implicitly the authenticated user.
+export interface CreateBorrowingBody {
+  from_user_id?: string
+  from_name?: string
+  amount: number
+  resolved_amount?: number
+  currency?: string
+  description?: string
+  date?: string
+}
+
+export interface CreateLendingBody {
+  to_user_id?: string
+  to_name?: string
+  amount: number
+  resolved_amount?: number
+  currency?: string
+  description?: string
+  date?: string
+}
+
+// Body for repay/take/give/collect helper actions. The server figures out
+// the FinanceRequestType from the route.
+export interface CreditActionBody {
+  amount: number
+  description?: string
+}
+
+// Result of a helper action. `applied=true` (HTTP 200) means the credit is
+// already in its new state — render the new amount. `applied=false` (HTTP
+// 201) means a FinanceRequest was created on a two-OID credit — render
+// "request sent" / await counterparty approval. The just-created request is
+// the last entry in `credit.finance_requests` whose `requested_by === me`.
+export interface CreditActionResult {
+  applied: boolean
+  credit: Credit
+}
+
+async function postCreditAction(path: string, body: CreditActionBody): Promise<CreditActionResult> {
+  const { status, data } = await requestWithStatus<Credit>(path, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+  return { applied: status === 200, credit: data }
+}
+
+export const borrowingApi = {
+  list: () => api.get<Credit[]>('/borrowings'),
+  get: (id: string) => api.get<Credit>(`/borrowings/${id}`),
+  create: (body: CreateBorrowingBody) => api.post<Credit>('/borrowings', body),
+  // PUT only works on one-OID credits; two-OID returns 409 — use repay/take.
+  update: (id: string, body: Partial<Credit>) => api.put<Credit>(`/borrowings/${id}`, body),
+  remove: (id: string) => api.delete<null>(`/borrowings/${id}`),
+  // Mark money paid back to the lender (increase_resolved_amount).
+  repay: (id: string, body: CreditActionBody) =>
+    postCreditAction(`/borrowings/${id}/repay`, body),
+  // Borrow more on the same credit (increase_amount).
+  take: (id: string, body: CreditActionBody) =>
+    postCreditAction(`/borrowings/${id}/take`, body),
+  approveRequest: (id: string, reqId: string) =>
+    api.post<Credit>(`/borrowings/${id}/requests/${reqId}/approve`, {}),
+  rejectRequest: (id: string, reqId: string) =>
+    api.post<Credit>(`/borrowings/${id}/requests/${reqId}/reject`, {}),
+}
+
+export const lendingApi = {
+  list: () => api.get<Credit[]>('/lendings'),
+  get: (id: string) => api.get<Credit>(`/lendings/${id}`),
+  create: (body: CreateLendingBody) => api.post<Credit>('/lendings', body),
+  update: (id: string, body: Partial<Credit>) => api.put<Credit>(`/lendings/${id}`, body),
+  remove: (id: string) => api.delete<null>(`/lendings/${id}`),
+  // Lend more on the same credit (increase_amount).
+  give: (id: string, body: CreditActionBody) =>
+    postCreditAction(`/lendings/${id}/give`, body),
+  // Mark money collected back from the borrower (increase_resolved_amount).
+  collect: (id: string, body: CreditActionBody) =>
+    postCreditAction(`/lendings/${id}/collect`, body),
+  approveRequest: (id: string, reqId: string) =>
+    api.post<Credit>(`/lendings/${id}/requests/${reqId}/approve`, {}),
+  rejectRequest: (id: string, reqId: string) =>
+    api.post<Credit>(`/lendings/${id}/requests/${reqId}/reject`, {}),
 }
 
 export const settingsApi = {

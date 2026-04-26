@@ -13,6 +13,8 @@ const HomeView = () => import('../views/HomeView.vue')
 const BudgetsView = () => import('../views/BudgetsView.vue')
 const GoalsView = () => import('../views/GoalsView.vue')
 const SettingsView = () => import('../views/SettingsView.vue')
+const LedgerView = () => import('../views/LedgerView.vue')
+const LedgerDetailView = () => import('../views/LedgerDetailView.vue')
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -30,6 +32,19 @@ export const router = createRouter({
     { path: '/budgets', component: BudgetsView, meta: { requiresAuth: true } },
     { path: '/goals', component: GoalsView, meta: { requiresAuth: true } },
     { path: '/settings', component: SettingsView, meta: { requiresAuth: true } },
+    { path: '/ledger', component: LedgerView, meta: { requiresAuth: true } },
+    {
+      path: '/borrowings/:id',
+      component: LedgerDetailView,
+      meta: { requiresAuth: true },
+      props: (route) => ({ side: 'borrowing', id: route.params.id }),
+    },
+    {
+      path: '/lendings/:id',
+      component: LedgerDetailView,
+      meta: { requiresAuth: true },
+      props: (route) => ({ side: 'lending', id: route.params.id }),
+    },
   ],
 })
 

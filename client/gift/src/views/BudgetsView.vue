@@ -322,9 +322,14 @@ onMounted(load)
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
   align-items: center;
+  overflow: hidden;
+}
+
+.overall > div {
+  min-width: 0;
 }
 
 .overall-money {

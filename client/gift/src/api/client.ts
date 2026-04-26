@@ -55,11 +55,15 @@ async function refreshOnce(): Promise<boolean> {
   return true
 }
 
-export async function request<T>(
+// Returns the parsed body alongside the HTTP status. Most callers only care
+// about the body and use `request()` below; the credits endpoints need the
+// status to distinguish 200 (one-OID, applied) from 201 (two-OID, awaiting
+// counterparty approval).
+export async function requestWithStatus<T>(
   path: string,
   init: RequestInit = {},
   opts: RequestOptions = {},
-): Promise<T> {
+): Promise<{ status: number; data: T }> {
   const withAuth = opts.auth !== false
   let res = await rawFetch(path, init, withAuth)
   if (res.status === 401 && withAuth && auth.refreshToken.value) {
@@ -70,7 +74,17 @@ export async function request<T>(
       auth.clear()
     }
   }
-  return parseWrapped<T>(res)
+  const data = await parseWrapped<T>(res)
+  return { status: res.status, data }
+}
+
+export async function request<T>(
+  path: string,
+  init: RequestInit = {},
+  opts: RequestOptions = {},
+): Promise<T> {
+  const { data } = await requestWithStatus<T>(path, init, opts)
+  return data
 }
 
 export const api = {

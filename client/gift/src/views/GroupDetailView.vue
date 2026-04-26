@@ -97,7 +97,7 @@ async function addMember(u: User) {
 }
 
 async function removeMember(mid: string) {
-  if (!confirm('Remove this member?')) return
+  if (!confirm(t('group_detail.confirm_remove_member'))) return
   busy.value = true
   try {
     const g = await groupApi.removeMember(props.id, mid)
@@ -121,8 +121,8 @@ async function loadMembers(ids: string[]) {
 }
 
 function memberName(uid: string) {
-  if (uid === myId.value) return 'You'
-  return members.value[uid]?.name || 'Someone'
+  if (uid === myId.value) return t('group_detail.you')
+  return members.value[uid]?.name || t('group_detail.someone')
 }
 
 // --- rename --------------------------------------------------------------
@@ -142,7 +142,7 @@ async function saveRename() {
     const g = await groupApi.update(props.id, { name: renameValue.value.trim() })
     group.value = g
     renaming.value = false
-    toast.flash('Group renamed')
+    toast.flash(t('group_detail.toast_renamed'))
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Rename failed'
   } finally {
@@ -207,7 +207,7 @@ async function createSpending() {
     spendingForm.value.amount = 0
     spendingForm.value.description = ''
     spendingForm.value.category = ''
-    toast.flash('Spending saved')
+    toast.flash(t('group_detail.toast_saved'))
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Create failed'
   } finally {
@@ -216,7 +216,7 @@ async function createSpending() {
 }
 
 async function removeSpending(id: string) {
-  if (!confirm('Delete this spending?')) return
+  if (!confirm(t('group_detail.confirm_delete_spending'))) return
   try {
     await spendingApi.remove(id)
     spendings.value = spendings.value.filter((s) => String(s._id ?? s.id) !== id)
@@ -341,11 +341,11 @@ async function toggleBudgetLink(b: Budget) {
       // Mirror the change locally so the picker badge updates immediately and
       // the row's "linked" chip reflects the unlink without a refetch.
       mutateBudgets(sid, (ids) => ids.filter((x) => x !== bid))
-      toast.flash(`Unlinked from "${b.category}"`)
+      toast.flash(t('group_detail.toast_unlinked', { name: b.category }))
     } else {
       await spendingApi.linkBudget(sid, bid)
       mutateBudgets(sid, (ids) => (ids.includes(bid) ? ids : [...ids, bid]))
-      toast.flash(`Linked to "${b.category}"`)
+      toast.flash(t('group_detail.toast_linked', { name: b.category }))
     }
     closeLinkBudget()
   } catch (e) {
@@ -445,8 +445,8 @@ function when(dateStr: string): string {
   const now = new Date()
   const mid = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
   const diff = (mid(now).getTime() - mid(d).getTime()) / (24 * 3600 * 1000)
-  if (diff === 0) return 'TODAY · ' + d.toTimeString().slice(0, 5)
-  if (diff === 1) return 'YESTERDAY'
+  if (diff === 0) return t('group_detail.when_today', { time: d.toTimeString().slice(0, 5) })
+  if (diff === 1) return t('group_detail.when_yesterday')
   if (diff < 7) return d.toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase()
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()
 }
@@ -491,7 +491,7 @@ function budgetTagsFor(s: Spending): string[] {
 }
 
 async function deleteGroup() {
-  if (!confirm('Delete this group? This cannot be undone.')) return
+  if (!confirm(t('group_detail.confirm_delete_group'))) return
   try {
     await groupApi.remove(props.id)
     router.push('/groups')
@@ -507,14 +507,14 @@ watch(() => props.id, load)
 <template>
   <section>
     <router-link to="/groups" class="back">
-      <Icon name="arrowLeft" :size="14" /> BACK
+      <Icon name="arrowLeft" :size="14" /> {{ t('group_detail.back') }}
     </router-link>
 
-    <p v-if="loading" class="muted">Loading…</p>
+    <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error">{{ error }}</p>
 
     <template v-else-if="group">
-      <div class="eyebrow">GROUP · ACTIVE</div>
+      <div class="eyebrow">{{ t('group_detail.group_active') }}</div>
       <div v-if="renaming" class="inline-form" style="margin: 10px 0">
         <input
           v-model="renameValue"
@@ -523,7 +523,7 @@ watch(() => props.id, load)
           @keyup.enter="saveRename"
           @keyup.esc="renaming = false"
         />
-        <button class="btn btn-primary" @click="saveRename" :disabled="busy">Save</button>
+        <button class="btn btn-primary" @click="saveRename" :disabled="busy">{{ t('common.save') }}</button>
       </div>
       <div v-else class="hero-row">
         <h1 class="hero">
@@ -542,16 +542,16 @@ watch(() => props.id, load)
         </div>
       </div>
       <div class="group-meta">
-        <span>{{ group.member_ids?.length ?? 0 }} members</span>
+        <span>{{ t('group_detail.member_count', { n: group.member_ids?.length ?? 0 }) }}</span>
         <span>·</span>
-        <span>{{ spendings.length }} spendings</span>
-        <button v-if="isOwner" class="linklike" @click="startRename">Rename</button>
-        <button class="linklike" @click="openMembers">Members</button>
+        <span>{{ t('group_detail.spending_count', { n: spendings.length }) }}</span>
+        <button v-if="isOwner" class="linklike" @click="startRename">{{ t('group_detail.rename') }}</button>
+        <button class="linklike" @click="openMembers">{{ t('group_detail.members') }}</button>
       </div>
 
       <!-- Total card -->
       <div class="card-ink total-card">
-        <div class="mono-label">TOTAL SPENT</div>
+        <div class="mono-label">{{ t('group_detail.total_spent') }}</div>
         <div class="money-big">
           <span class="cur">{{ currency }}</span>
           {{ Math.floor(total).toLocaleString()
@@ -560,9 +560,9 @@ watch(() => props.id, load)
         <div class="row spread meta">
           <span>
             <span class="dot"></span>
-            {{ money(todaySpent, currency) }} today · {{ txToday }} txns
+            {{ t('group_detail.today_txns', { amount: money(todaySpent, currency), n: txToday }) }}
           </span>
-          <span>10 DAYS</span>
+          <span>{{ t('group_detail.ten_days') }}</span>
         </div>
         <div class="spark">
           <Sparkline :data="spark" :width="314" :height="48" stroke="#F5F1E8" />
@@ -577,10 +577,10 @@ watch(() => props.id, load)
           @click="showSpendingForm = !showSpendingForm"
         >
           <Icon name="plus" :size="18" />
-          {{ showSpendingForm ? 'Cancel' : 'Spending' }}
+          {{ showSpendingForm ? t('group_detail.cancel') : t('group_detail.spending') }}
         </button>
         <router-link to="/incomes" class="btn btn-secondary btn-lg" style="flex: 1">
-          <Icon name="arrowDown" :size="18" /> Income
+          <Icon name="arrowDown" :size="18" /> {{ t('group_detail.income') }}
         </router-link>
       </div>
 
@@ -590,7 +590,7 @@ watch(() => props.id, load)
         @submit.prevent="createSpending"
       >
         <div class="row spread" style="align-items: center">
-          <div class="eyebrow">NEW SPENDING</div>
+          <div class="eyebrow">{{ t('group_detail.new_spending') }}</div>
           <VoiceInputButton
             :parser="parseSpendingFromAudio"
             @result="applySpendingVoiceDraft"
@@ -599,7 +599,7 @@ watch(() => props.id, load)
         </div>
         <div class="split">
           <label class="field">
-            <span>AMOUNT</span>
+            <span>{{ t('group_detail.amount_label') }}</span>
             <input
               v-model.number="spendingForm.amount"
               type="number"
@@ -609,20 +609,20 @@ watch(() => props.id, load)
             />
           </label>
           <label class="field">
-            <span>CURRENCY</span>
+            <span>{{ t('group_detail.currency_label') }}</span>
             <input v-model="spendingForm.currency" />
           </label>
         </div>
         <label class="field">
-          <span>CATEGORY</span>
-          <input v-model="spendingForm.category" placeholder="Food, Transport…" />
+          <span>{{ t('group_detail.category_label') }}</span>
+          <input v-model="spendingForm.category" :placeholder="t('group_detail.category_placeholder')" />
         </label>
         <label class="field">
-          <span>DESCRIPTION</span>
+          <span>{{ t('group_detail.description_label') }}</span>
           <input v-model="spendingForm.description" />
         </label>
         <label class="field">
-          <span>DATE</span>
+          <span>{{ t('group_detail.date_label') }}</span>
           <input v-model="spendingForm.date" type="date" required />
         </label>
         <button
@@ -630,7 +630,7 @@ watch(() => props.id, load)
           class="btn btn-primary btn-lg"
           :disabled="creatingSpending"
         >
-          {{ creatingSpending ? 'Saving…' : 'Save spending' }}
+          {{ creatingSpending ? t('group_detail.saving') : t('group_detail.save_spending') }}
           <Icon name="check" :size="16" />
         </button>
       </form>
@@ -638,10 +638,10 @@ watch(() => props.id, load)
       <!-- Balances -->
       <div v-if="balances.length" class="section-block">
         <div class="row spread">
-          <span class="eyebrow">BALANCES</span>
-          <span class="eyebrow">SETTLE UP →</span>
+          <span class="eyebrow">{{ t('group_detail.balances') }}</span>
+          <span class="eyebrow">{{ t('group_detail.settle_up') }}</span>
         </div>
-        <h3 class="serif">Who is <em>up.</em></h3>
+        <h3 class="serif">{{ t('group_detail.who_is_up') }} <em>{{ t('group_detail.up') }}</em></h3>
         <div
           v-for="b in balances"
           :key="String(b.user._id ?? b.user.id)"
@@ -678,11 +678,11 @@ watch(() => props.id, load)
       <!-- Spendings -->
       <div class="section-block">
         <div class="row spread">
-          <span class="eyebrow">LEDGER</span>
-          <span class="eyebrow">{{ spendings.length }} ENTRIES</span>
+          <span class="eyebrow">{{ t('group_detail.ledger') }}</span>
+          <span class="eyebrow">{{ t('group_detail.entries', { n: spendings.length }) }}</span>
         </div>
-        <h3 class="serif">Recent <em>spendings.</em></h3>
-        <div v-if="!spendings.length" class="empty">No spendings yet.</div>
+        <h3 class="serif">{{ t('group_detail.recent') }} <em>{{ t('group_detail.spendings_em') }}</em></h3>
+        <div v-if="!spendings.length" class="empty">{{ t('group_detail.no_spendings') }}</div>
         <div v-else>
           <div
             v-for="(s, i) in spendings"
@@ -696,7 +696,7 @@ watch(() => props.id, load)
               @click="openLinkBudget(s)"
             >
               <Icon name="gauge" :size="16" />
-              <span>Budget</span>
+              <span>{{ t('group_detail.budget_action') }}</span>
             </button>
             <div
               class="row-entry swipe-content"
@@ -709,10 +709,10 @@ watch(() => props.id, load)
               <div class="glyph"><Icon :name="iconFor(s.category)" :size="18" /></div>
               <div style="min-width: 0">
                 <div class="title">
-                  {{ s.description || s.category || 'Spending' }}
+                  {{ s.description || s.category || t('group_detail.spending_fallback') }}
                 </div>
                 <div class="sub">
-                  {{ when(s.date) }} · {{ memberName(s.user_id) }} paid
+                  {{ when(s.date) }} · {{ memberName(s.user_id) }} {{ t('group_detail.paid') }}
                 </div>
                 <div v-if="budgetTagsFor(s).length" class="tag-row">
                   <span
@@ -745,10 +745,10 @@ watch(() => props.id, load)
 
       <div v-if="isOwner" class="danger-zone">
         <div class="eyebrow" style="color: var(--hot); margin-bottom: 8px">
-          DANGER ZONE
+          {{ t('group_detail.danger_zone') }}
         </div>
         <button class="btn btn-danger" @click="deleteGroup">
-          <Icon name="close" :size="14" /> Delete group
+          <Icon name="close" :size="14" /> {{ t('group_detail.delete_group') }}
         </button>
       </div>
     </template>
@@ -763,21 +763,21 @@ watch(() => props.id, load)
         <div class="modal">
           <div class="modal-header">
             <button class="linklike" @click="closeLinkBudget">
-              <Icon name="close" :size="16" /> CANCEL
+              <Icon name="close" :size="16" /> {{ t('common.cancel').toUpperCase() }}
             </button>
-            <div class="eyebrow">LINK · BUDGET</div>
+            <div class="eyebrow">{{ t('group_detail.link_budget') }}</div>
           </div>
           <div class="modal-body">
             <h1 class="display">
-              Pin this to <em>a budget.</em>
+              {{ t('group_detail.pin_to') }} <em>{{ t('group_detail.a_budget') }}</em>
             </h1>
             <p class="muted small" style="margin-top: 6px">
-              {{ linkingFor.description || linkingFor.category || 'Spending' }}
+              {{ linkingFor.description || linkingFor.category || t('group_detail.spending_fallback') }}
               · {{ linkingFor.currency || '$' }}{{ linkingFor.amount.toFixed(2) }}
             </p>
 
             <div v-if="!budgets.length" class="empty" style="margin-top: 18px">
-              No budgets yet. Create one in the Budgets tab first.
+              {{ t('group_detail.no_budgets_yet') }}
             </div>
             <div v-else class="picker-list" style="margin-top: 18px">
               <button
@@ -798,7 +798,7 @@ watch(() => props.id, load)
                   </span>
                 </span>
                 <span v-if="isLinked(linkingFor, b)" class="badge linked-badge">
-                  LINKED · TAP TO UNLINK
+                  {{ t('group_detail.linked_tap_to_unlink') }}
                 </span>
                 <Icon v-else name="chevR" :size="14" />
               </button>
@@ -814,9 +814,9 @@ watch(() => props.id, load)
         <div class="modal">
           <div class="modal-header">
             <button class="linklike" @click="closeMembers">
-              <Icon name="close" :size="16" /> CLOSE
+              <Icon name="close" :size="16" /> {{ t('group_detail.close') }}
             </button>
-            <div class="eyebrow">MEMBERS · {{ group.name }}</div>
+            <div class="eyebrow">{{ t('group_detail.members_of', { name: group.name }) }}</div>
           </div>
           <div class="modal-body">
             <p v-if="modalError" class="error">{{ modalError }}</p>
@@ -824,18 +824,18 @@ watch(() => props.id, load)
             <div v-if="isOwner">
               <input
                 v-model="searchQuery"
-                placeholder="Search people by name…"
+                :placeholder="t('group_detail.search_people')"
                 @input="onSearchInput"
               />
               <div v-if="searching" class="muted small" style="margin-top: 8px">
-                Searching…
+                {{ t('group_detail.searching') }}
               </div>
               <div
                 v-else-if="searchQuery && !searchResults.length"
                 class="muted small"
                 style="margin-top: 8px"
               >
-                No matches
+                {{ t('group_detail.no_matches') }}
               </div>
               <div v-else-if="searchResults.length" style="margin-top: 12px">
                 <div
@@ -853,7 +853,7 @@ watch(() => props.id, load)
                     class="linklike"
                     disabled
                   >
-                    Added
+                    {{ t('group_detail.added') }}
                   </button>
                   <button
                     v-else
@@ -861,14 +861,14 @@ watch(() => props.id, load)
                     :disabled="busy"
                     @click="addMember(u)"
                   >
-                    Add
+                    {{ t('group_detail.add') }}
                   </button>
                 </div>
               </div>
             </div>
 
             <div class="eyebrow" style="margin-top: 22px">
-              CURRENT ({{ group.member_ids?.length ?? 0 }})
+              {{ t('group_detail.current_count', { n: group.member_ids?.length ?? 0 }) }}
             </div>
             <div
               v-for="m in group.member_ids"
@@ -883,8 +883,8 @@ watch(() => props.id, load)
               <div class="info">
                 <div class="name">
                   {{ memberName(m) }}
-                  <span v-if="m === group.owner_id" class="badge">owner</span>
-                  <span v-if="m === myId" class="badge">you</span>
+                  <span v-if="m === group.owner_id" class="badge">{{ t('group_detail.owner') }}</span>
+                  <span v-if="m === myId" class="badge">{{ t('group_detail.you_badge') }}</span>
                 </div>
                 <div class="email">{{ members[m]?.email || '' }}</div>
               </div>
@@ -894,7 +894,7 @@ watch(() => props.id, load)
                 :disabled="busy"
                 @click="removeMember(m)"
               >
-                Remove
+                {{ t('group_detail.remove') }}
               </button>
             </div>
           </div>
