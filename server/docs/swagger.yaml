@@ -65,6 +65,10 @@ definitions:
     type: object
   handlers.ProfileInfo:
     properties:
+      balance:
+        type: number
+      currency:
+        type: string
       email:
         type: string
       id:
@@ -91,6 +95,11 @@ definitions:
     type: object
   handlers.RegisterRequest:
     properties:
+      currency:
+        description: |-
+          Currency for the account
+          required: true
+        type: string
       email:
         description: |-
           User e-mail address
@@ -220,6 +229,8 @@ definitions:
         type: string
       id:
         type: string
+      limit:
+        type: number
       period:
         type: string
       start_date:
@@ -298,6 +309,32 @@ info:
   title: Gift API
   version: 0.1.0
 paths:
+  /api/v1/auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the authenticated user's information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get user info
+      tags:
+      - auth
   /api/v1/budgets:
     get:
       description: Returns all budgets for the authenticated user
@@ -313,15 +350,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
       summary: List budgets
       tags:
       - budgets
@@ -345,21 +378,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
       summary: Create budget
       tags:
       - budgets
@@ -377,33 +404,23 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: boolean
-            type: object
+            $ref: '#/definitions/repository.Response'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
       summary: Delete budget
       tags:
       - budgets
@@ -424,27 +441,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
       summary: Get budget by ID
       tags:
       - budgets
@@ -473,28 +482,116 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "403":
           description: Forbidden
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/repository.Response'
       summary: Update budget
+      tags:
+      - budgets
+  /api/v1/budgets/{id}/decrease:
+    post:
+      consumes:
+      - application/json
+      description: Decreases the amount value for the specified budget of the authenticated
+        user
+      parameters:
+      - description: Budget ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 0
+        description: Amount to decrease
+        format: float64
+        in: query
+        name: amount
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Amount decreased successfully
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Invalid budget id, request, or amount
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Budget not found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Failed to decrease amount
+          schema:
+            $ref: '#/definitions/repository.Response'
+      summary: Decrease the amount of a budget
+      tags:
+      - budgets
+  /api/v1/budgets/{id}/increase:
+    post:
+      consumes:
+      - application/json
+      description: Increases the amount value for the specified budget of the authenticated
+        user
+      parameters:
+      - description: Budget ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 0
+        description: Amount to increase
+        format: float64
+        in: query
+        name: amount
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Amount increased successfully
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Invalid budget id, request, or amount
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Budget not found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Failed to increase amount
+          schema:
+            $ref: '#/definitions/repository.Response'
+      summary: Increase the amount of a budget
       tags:
       - budgets
   /api/v1/goals:
@@ -989,6 +1086,137 @@ paths:
       summary: Get settings snapshot
       tags:
       - settings
+  /api/v1/settings/export_data:
+    post:
+      description: Export all collections data from the database in JSON or CSV format
+      parameters:
+      - default: json
+        description: 'Export format: json or csv'
+        enum:
+        - json
+        - csv
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Export all data
+      tags:
+      - settings
+  /api/v1/spendings/{id}/budgets/{budget_id}/link:
+    post:
+      consumes:
+      - application/json
+      description: Links a budget to a specified spending for the authenticated user
+      parameters:
+      - description: Spending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Budget ID (hex)
+        in: path
+        name: budget_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Link a budget to a spending
+      tags:
+      - spendings
+  /api/v1/spendings/{id}/budgets/{budget_id}/unlink:
+    post:
+      consumes:
+      - application/json
+      description: Unlinks a budget from a specified spending for the authenticated
+        user
+      parameters:
+      - description: Spending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Budget ID (hex)
+        in: path
+        name: budget_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/repository.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/repository.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Unlink a budget from a spending
+      tags:
+      - spendings
   /api/v1/users:
     get:
       description: Returns a list of users

@@ -101,6 +101,8 @@ func (r *Router) RegisterRoutes(app *fiber.App) {
 	budgets.Get("/:id", r.handlers.BudgetHandler.GetByID)
 	budgets.Put("/:id", r.handlers.BudgetHandler.Update)
 	budgets.Delete("/:id", r.handlers.BudgetHandler.Delete)
+	budgets.Post("/:id/increase", r.handlers.BudgetHandler.IncreaseAmount)
+	budgets.Post("/:id/decrease", r.handlers.BudgetHandler.DecreaseAmount)
 
 	// alerts
 	alerts := api.Group("/alerts", middleware.Protected())

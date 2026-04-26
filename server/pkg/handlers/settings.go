@@ -325,7 +325,6 @@ func csvCell(v interface{}) string {
 // @Description  Export all collections data from the database in JSON or CSV format
 // @Tags         settings
 // @Produce      json
-// @Produce      csv
 // @Param        format  query     string  false  "Export format: json or csv"  Enums(json, csv)  default(json)
 // @Success      200     {object}  map[string]interface{}  "Success"
 // @Failure      400     {object}  map[string]string       "Invalid format"

@@ -14,6 +14,7 @@ type Budget struct {
 	UserID    bson.ObjectID `bson:"user_id" json:"user_id"`
 	Category  string        `bson:"category" json:"category"`
 	Amount    float64       `bson:"amount" json:"amount"`
+	Limit     float64       `bson:"limit" json:"limit"`
 	Currency  string        `bson:"currency" json:"currency"`
 	Period    string        `bson:"period" json:"period"`
 	StartDate time.Time     `bson:"start_date" json:"start_date"`
