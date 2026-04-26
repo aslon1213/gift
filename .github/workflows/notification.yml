@@ -1,5 +1,7 @@
 name: telegram message
-on: [push]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
 jobs:
 
   build:
@@ -15,6 +17,6 @@ jobs:
             ${{ github.actor }} created commit:
             Commit message: ${{ github.event.commits[0].message }}
             
-            Repository: ${{ github.repository }}
+            Repository: https://github.com/${{ github.repository }}
             
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
