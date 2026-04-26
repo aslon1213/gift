@@ -70,9 +70,9 @@ Salary, freelance, dividends, a tip jar — log it, see it, net it against spend
 ## 🖼️ Screenshots
 <div align="center">
 
-| Dashboard | Groups | Spendings |
-| :-: | :-: | :-: |
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Groups](docs/screenshots/groups.png) | ![Spendings](docs/screenshots/spendings.png) |
+| Dashboard | Groups | Goals | Server Setup |
+| :-: | :-: | :-: | :-: |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Groups](docs/screenshots/groups.png) | ![Goals](docs/screenshots/goals.png) | ![Server Setup](docs/screenshots/server.png) |
 
 </div>
 
