@@ -69,6 +69,8 @@ func (r *Router) RegisterRoutes(app *fiber.App) {
 	spendings.Get("/:id", r.handlers.SpendingHandler.GetByID)
 	spendings.Put("/:id", r.handlers.SpendingHandler.Update)
 	spendings.Delete("/:id", r.handlers.SpendingHandler.Delete)
+	spendings.Post("/:id/budgets/:budget_id/link", r.handlers.SpendingHandler.LinkBudget)
+	spendings.Post("/:id/budgets/:budget_id/unlink", r.handlers.SpendingHandler.UnlinkBudget)
 
 	// Income Routes
 	incomes := api.Group("/incomes", middleware.Protected())

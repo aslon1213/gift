@@ -32,7 +32,7 @@ func NewHandlers(repo *repository.Repository, db *mongo.Database, startedAt time
 	return &Handlers{
 		UserHandler:     NewUserHandler(repo.Users),
 		GroupHandler:    NewGroupHandler(repo.Groups),
-		SpendingHandler: NewSpendingHandler(repo.Spendings, repo.Groups, repo.Users),
+		SpendingHandler: NewSpendingHandler(repo.Spendings, repo.Groups, repo.Users, repo.Budgets),
 		IncomeHandler:   NewIncomeHandler(repo.Incomes, repo.Users),
 		GoalHandler:     NewGoalHandler(repo.Goals),
 		BudgetHandler:   NewBudgetHandler(repo.Budgets),

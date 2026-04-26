@@ -18,8 +18,10 @@ type Spending struct {
 	Category    string        `bson:"category" json:"category"`
 	Description string        `bson:"description" json:"description"`
 	Date        time.Time     `bson:"date" json:"date"`
-	CreatedAt   time.Time     `bson:"created_at" json:"created_at"`
-	UpdatedAt   time.Time     `bson:"updated_at" json:"updated_at"`
+	// budgets link
+	Budgets   []bson.ObjectID `bson:"budgets" json:"budgets"`
+	CreatedAt time.Time       `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time       `bson:"updated_at" json:"updated_at"`
 }
 
 type SpendingRepository struct {
@@ -96,5 +98,53 @@ func (r *SpendingRepository) Update(ctx context.Context, id bson.ObjectID, s *Sp
 
 func (r *SpendingRepository) Delete(ctx context.Context, id bson.ObjectID) error {
 	_, err := r.coll.DeleteOne(ctx, bson.M{"_id": id})
+	return err
+}
+
+// LinkBudget links a spending to a budget using a MongoDB update aggregation pipeline.
+func (r *SpendingRepository) LinkBudget(ctx context.Context, spendingID bson.ObjectID, budgetID bson.ObjectID) error {
+	// Use aggregation pipeline for conditional append/init of budgets array.
+	// This requires MongoDB 4.2+ and mongo-go-driver v1.1.0+.
+	//
+	// If budgets is missing or null, set as [budgetID].
+	// Otherwise, append budgetID to start of array, excluding duplicates.
+	_, err := r.coll.UpdateOne(
+		ctx,
+		bson.M{"_id": spendingID},
+		[]bson.M{
+			{
+				"$set": bson.M{
+					"budgets": bson.M{
+						"$cond": bson.M{
+							"if": bson.M{
+								"$or": []interface{}{
+									bson.M{"$not": "$budgets"},
+									bson.M{"$eq": []interface{}{"$budgets", nil}},
+								},
+							},
+							"then": []bson.ObjectID{budgetID},
+							"else": bson.M{
+								// AddToSet-analog: append only if not already in array.
+								"$cond": bson.M{
+									"if":   bson.M{"$in": []interface{}{budgetID, "$budgets"}},
+									"then": "$budgets",
+									"else": bson.M{"$concatArrays": []interface{}{"$budgets", []bson.ObjectID{budgetID}}},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	)
+	return err
+}
+
+func (r *SpendingRepository) UnlinkBudget(ctx context.Context, spendingID bson.ObjectID, budgetID bson.ObjectID) error {
+	_, err := r.coll.UpdateOne(
+		ctx,
+		bson.M{"_id": spendingID},
+		bson.M{"$pull": bson.M{"budgets": budgetID}},
+	)
 	return err
 }

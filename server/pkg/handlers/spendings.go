@@ -13,13 +13,14 @@ import (
 )
 
 type SpendingHandler struct {
-	repo      *repository.SpendingRepository
-	groupRepo *repository.GroupRepository
-	userRepo  *repository.UserRepository
+	repo       *repository.SpendingRepository
+	groupRepo  *repository.GroupRepository
+	userRepo   *repository.UserRepository
+	budgetRepo *repository.BudgetRepository
 }
 
-func NewSpendingHandler(repo *repository.SpendingRepository, groupRepo *repository.GroupRepository, userRepo *repository.UserRepository) *SpendingHandler {
-	return &SpendingHandler{repo: repo, groupRepo: groupRepo, userRepo: userRepo}
+func NewSpendingHandler(repo *repository.SpendingRepository, groupRepo *repository.GroupRepository, userRepo *repository.UserRepository, budgetRepo *repository.BudgetRepository) *SpendingHandler {
+	return &SpendingHandler{repo: repo, groupRepo: groupRepo, userRepo: userRepo, budgetRepo: budgetRepo}
 }
 
 // Query godoc
@@ -348,4 +349,135 @@ func (h *SpendingHandler) Delete(c fiber.Ctx) error {
 	// --- end user balance update
 
 	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "spending deleted successfully", nil))
+}
+
+// LinkBudget godoc
+// @Summary      Link a budget to a spending
+// @Description  Links a budget to a specified spending for the authenticated user
+// @Tags         spendings
+// @Accept       json
+// @Produce      json
+// @Param        id        path      string true  "Spending ID (hex)"
+// @Param        budget_id path      string true  "Budget ID (hex)"
+// @Success      200  {object}  repository.Response
+// @Failure      400  {object}  repository.Response
+// @Failure      401  {object}  repository.Response
+// @Failure      403  {object}  repository.Response
+// @Failure      404  {object}  repository.Response
+// @Failure      500  {object}  repository.Response
+// @Security     ApiKeyAuth
+// @Router       /api/v1/spendings/{id}/budgets/{budget_id}/link [post]
+func (h *SpendingHandler) LinkBudget(c fiber.Ctx) error {
+	userID, err := services.GetUserIDFromContext(c)
+	if err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", err.Error(), nil))
+	}
+
+	spendingID, err := bson.ObjectIDFromHex(c.Params("id"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+	}
+
+	budgetID, err := bson.ObjectIDFromHex(c.Params("budget_id"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+	}
+
+	// check first if spending and budget are the same person
+	spending, err := h.repo.GetByID(c.Context(), spendingID)
+	if err != nil || spending == nil {
+		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	}
+	if spending.UserID != userID {
+		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can link this spending", nil))
+	}
+
+	budget, err := h.budgetRepo.GetByID(c.Context(), budgetID)
+	if err != nil || budget == nil {
+		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	}
+	if budget.UserID != userID {
+		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can link this budget", nil))
+	}
+
+	// link the budget
+	err = h.repo.LinkBudget(c.Context(), spendingID, budgetID)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	}
+	// -- update the budget balance as well
+	budget.Amount += spending.Amount
+	err = h.budgetRepo.Update(c.Context(), budgetID, budget)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	}
+	// -- end budget balance update
+
+	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "budget linked successfully", nil))
+}
+
+// UnlinkBudget godoc
+// @Summary      Unlink a budget from a spending
+// @Description  Unlinks a budget from a specified spending for the authenticated user
+// @Tags         spendings
+// @Accept       json
+// @Produce      json
+// @Param        id        path      string true  "Spending ID (hex)"
+// @Param        budget_id path      string true  "Budget ID (hex)"
+// @Success      200  {object}  repository.Response
+// @Failure      400  {object}  repository.Response
+// @Failure      401  {object}  repository.Response
+// @Failure      403  {object}  repository.Response
+// @Failure      404  {object}  repository.Response
+// @Failure      500  {object}  repository.Response
+// @Security     ApiKeyAuth
+// @Router       /api/v1/spendings/{id}/budgets/{budget_id}/unlink [post]
+func (h *SpendingHandler) UnlinkBudget(c fiber.Ctx) error {
+	userID, err := services.GetUserIDFromContext(c)
+	if err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(repository.NewResponse("error", err.Error(), nil))
+	}
+
+	spendingID, err := bson.ObjectIDFromHex(c.Params("id"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+	}
+
+	budgetID, err := bson.ObjectIDFromHex(c.Params("budget_id"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(repository.NewResponse("error", err.Error(), nil))
+	}
+
+	// check first if spending and budget are the same person
+	spending, err := h.repo.GetByID(c.Context(), spendingID)
+	if err != nil || spending == nil {
+		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	}
+	if spending.UserID != userID {
+		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can unlink this spending", nil))
+	}
+
+	budget, err := h.budgetRepo.GetByID(c.Context(), budgetID)
+	if err != nil || budget == nil {
+		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	}
+	if budget.UserID != userID {
+		return c.Status(http.StatusForbidden).JSON(repository.NewResponse("error", "only the owner can unlink this budget", nil))
+	}
+
+	// unlink the budget
+	err = h.repo.UnlinkBudget(c.Context(), spendingID, budgetID)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	}
+
+	// -- update the budget balance as well
+	budget.Amount -= spending.Amount
+	err = h.budgetRepo.Update(c.Context(), budgetID, budget)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(repository.NewResponse("error", "internal server error", nil))
+	}
+	// -- end budget balance update
+
+	return c.Status(http.StatusOK).JSON(repository.NewResponse("success", "budget unlinked successfully", nil))
 }
