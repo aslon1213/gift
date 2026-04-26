@@ -54,6 +54,7 @@ const CATEGORIES: Category[] = [
 
 const showAdd = ref(false)
 const step = ref(0)
+const voiceMode = ref(false)
 const amountStr = ref('')
 const category = ref<Category>(CATEGORIES[0])
 const payerId = ref<string>('')
@@ -98,6 +99,7 @@ const perPerson = computed(() =>
 
 function openAdd() {
   step.value = 0
+  voiceMode.value = false
   amountStr.value = ''
   category.value = CATEGORIES[0]
   description.value = ''
@@ -123,6 +125,7 @@ function openAdd() {
 
 function closeAdd() {
   showAdd.value = false
+  voiceMode.value = false
   keepAfterClose.value = false
 }
 
@@ -196,8 +199,18 @@ function applySpendingDraft(draft: SpendingDraft) {
     const d = new Date(draft.date)
     if (!Number.isNaN(d.getTime())) addDate.value = d.toISOString().slice(0, 10)
   }
+  // Voice path skips the 3-step modal — drop the user into a single-screen
+  // review form like the one inside the group page, with values pre-filled.
+  voiceMode.value = true
   toast.flash(t('voice.filled_from_speech'))
 }
+
+const amountReview = computed({
+  get: () => (amountStr.value ? Number(amountStr.value) : null),
+  set: (v: number | null) => {
+    amountStr.value = v == null || Number.isNaN(v) ? '' : String(v)
+  },
+})
 
 function onVoiceError(msg: string) {
   toast.flash(msg)
@@ -446,18 +459,114 @@ watch([filterGroup, filterCategory], load)
               <Icon name="close" :size="16" /> CANCEL
             </button>
             <div class="eyebrow">
-              STEP {{ step + 1 }} / 3 ·
-              <b>{{ activeGroup?.name || 'SELECT GROUP' }}</b>
+              <template v-if="voiceMode">
+                VOICE · <b>{{ activeGroup?.name || 'SELECT GROUP' }}</b>
+              </template>
+              <template v-else>
+                STEP {{ step + 1 }} / 3 ·
+                <b>{{ activeGroup?.name || 'SELECT GROUP' }}</b>
+              </template>
             </div>
           </div>
-          <div class="progress-rail" style="margin: 14px 22px 0">
+          <div v-if="!voiceMode" class="progress-rail" style="margin: 14px 22px 0">
             <div class="segment" :class="{ on: step >= 0 }"></div>
             <div class="segment" :class="{ on: step >= 1 }"></div>
             <div class="segment" :class="{ on: step >= 2 }"></div>
           </div>
 
+          <!-- Voice mode — single-screen review (mirrors group inline form) -->
+          <template v-if="voiceMode">
+            <div class="modal-body">
+              <div class="row spread" style="align-items: center">
+                <h2 class="serif-h" style="margin: 0">Voice <em>capture.</em></h2>
+                <VoiceInputButton
+                  :parser="parseSpendingFromAudio"
+                  @result="applySpendingDraft"
+                  @error="onVoiceError"
+                />
+              </div>
+              <div class="eyebrow" style="margin-top: 4px">REVIEW & SAVE</div>
+
+              <div class="split-grid" style="margin-top: 18px">
+                <label class="field">
+                  <span>{{ t('common.amount') }}</span>
+                  <input
+                    v-model.number="amountReview"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputmode="decimal"
+                  />
+                </label>
+                <label class="field">
+                  <span>CURRENCY</span>
+                  <input v-model="addCurrency" />
+                </label>
+              </div>
+
+              <label class="field" style="margin-top: 14px">
+                <span>{{ t('common.description') }}</span>
+                <input
+                  v-model="description"
+                  placeholder="e.g. Restaurant"
+                />
+              </label>
+
+              <div class="split-grid" style="margin-top: 14px">
+                <label class="field">
+                  <span>{{ t('common.date') }}</span>
+                  <input type="date" v-model="addDate" />
+                </label>
+                <label class="field">
+                  <span>GROUP</span>
+                  <select v-model="addGroupId">
+                    <option
+                      v-for="g in groups"
+                      :key="g._id ?? g.id"
+                      :value="String(g._id ?? g.id)"
+                    >
+                      {{ g.name }}
+                    </option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="eyebrow" style="margin: 22px 0 10px">CATEGORY</div>
+              <div class="pill-row">
+                <button
+                  v-for="c in CATEGORIES"
+                  :key="c.id"
+                  class="pill"
+                  :class="{ on: category.id === c.id }"
+                  @click="category = c"
+                >
+                  <Icon :name="c.id" :size="16" />
+                  {{ c.label }}
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-footer" style="display: flex; gap: 10px">
+              <button
+                class="btn btn-secondary"
+                @click="voiceMode = false; step = 0"
+              >
+                Manual
+              </button>
+              <button
+                class="btn btn-accent btn-lg"
+                style="flex: 1"
+                :disabled="amountNum <= 0 || !addGroupId || submitting"
+                @click="saveSpending"
+              >
+                <Icon name="check" :size="18" />
+                {{ submitting ? 'Saving…' : 'Save spending' }}
+              </button>
+            </div>
+          </template>
+
           <!-- Step 0 — amount only -->
-          <template v-if="step === 0">
+          <template v-if="!voiceMode && step === 0">
             <div class="modal-body amount-body">
               <div class="row spread" style="align-items: center">
                 <div class="eyebrow">NEW SPENDING</div>
@@ -520,7 +629,7 @@ watch([filterGroup, filterCategory], load)
           </template>
 
           <!-- Step 1 — who paid + split + description -->
-          <template v-if="step === 1">
+          <template v-if="!voiceMode && step === 1">
             <div class="modal-body">
               <h2 class="serif-h">
                 Who <em>paid?</em>
@@ -634,7 +743,7 @@ watch([filterGroup, filterCategory], load)
           </template>
 
           <!-- Step 2 — date, currency, category, confirm -->
-          <template v-if="step === 2">
+          <template v-if="!voiceMode && step === 2">
             <div class="modal-body">
               <h2 class="serif-h">One last <em>detail.</em></h2>
 

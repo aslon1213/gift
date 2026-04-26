@@ -8,9 +8,12 @@ import { toast } from '../stores/toast'
 import Icon from '../components/Icon.vue'
 import Avatar from '../components/Avatar.vue'
 import Sparkline from '../components/Sparkline.vue'
+import VoiceInputButton from '../components/VoiceInputButton.vue'
 import type { IconName } from '../components/icons'
 import { colorForId, money, signed } from '../utils/format'
 import { formatDay, groupBy, lastNDays, sumBy } from '../utils/charts'
+import { parseSpendingFromAudio, type SpendingDraft } from '../ai/parse'
+import { t } from '../i18n'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -157,6 +160,36 @@ const spendingForm = ref({
   date: new Date().toISOString().slice(0, 10),
 })
 const creatingSpending = ref(false)
+
+function applySpendingVoiceDraft(draft: SpendingDraft) {
+  // The form is open from the moment the user taps the voice button, so we
+  // just merge in whatever the model captured. Anything left null stays at
+  // the user's previous value.
+  if (draft.amount != null && draft.amount > 0) {
+    spendingForm.value.amount = draft.amount
+  }
+  if (draft.currency) {
+    spendingForm.value.currency = draft.currency.toUpperCase()
+  }
+  if (draft.category) {
+    spendingForm.value.category = draft.category
+  }
+  if (draft.description) {
+    spendingForm.value.description = draft.description
+  }
+  if (draft.date) {
+    const d = new Date(draft.date)
+    if (!Number.isNaN(d.getTime())) {
+      spendingForm.value.date = d.toISOString().slice(0, 10)
+    }
+  }
+  showSpendingForm.value = true
+  toast.flash(t('voice.filled_from_speech'))
+}
+
+function onSpendingVoiceError(msg: string) {
+  toast.flash(msg)
+}
 
 async function createSpending() {
   creatingSpending.value = true
@@ -556,6 +589,14 @@ watch(() => props.id, load)
         class="stack-form"
         @submit.prevent="createSpending"
       >
+        <div class="row spread" style="align-items: center">
+          <div class="eyebrow">NEW SPENDING</div>
+          <VoiceInputButton
+            :parser="parseSpendingFromAudio"
+            @result="applySpendingVoiceDraft"
+            @error="onSpendingVoiceError"
+          />
+        </div>
         <div class="split">
           <label class="field">
             <span>AMOUNT</span>
