@@ -142,7 +142,7 @@ const docTemplate = `{
         },
         "/api/v1/auth/me": {
             "get": {
-                "description": "Retrieves the authenticated user's information",
+                "description": "Retrieves the authenticated user's information along with a credit summary.",
                 "consumes": [
                     "application/json"
                 ],
@@ -157,11 +157,615 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User"
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_UserInfoResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/borrowings": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns borrowings where the authenticated user is the To party.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "borrowings"
+                ],
+                "summary": "List borrowings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Records a new borrowing for the authenticated user. The lender\nis set via from_user_id (registered user) or from_name (free string).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "borrowings"
+                ],
+                "summary": "Create borrowing",
+                "parameters": [
+                    {
+                        "description": "Borrowing data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_handlers.CreateBorrowingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/borrowings/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a borrowing where the caller is the To party (borrower).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "borrowings"
+                ],
+                "summary": "Get borrowing by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Borrowing ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates a borrowing where the lender is a free-form name. For\nborrowings between two registered users, use FinanceRequests.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "borrowings"
+                ],
+                "summary": "Update borrowing (one-OID credits only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Borrowing ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Borrowing fields",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_handlers.UpdateBorrowingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes a one-OID borrowing, or a two-OID borrowing once it is\nfully resolved.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "borrowings"
+                ],
+                "summary": "Delete borrowing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Borrowing ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/borrowings/{id}/repay": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Records a repayment on a borrowing — increases resolved_amount.\nFor two-party credits this opens a FinanceRequest the lender must\napprove. For one-OID credits the change is applied immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "borrowings"
+                ],
+                "summary": "Repay borrowing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Borrowing ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Repayment data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_handlers.CreditActionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/borrowings/{id}/requests/{req_id}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Counterparty approves a pending FinanceRequest. The requester\ncannot approve their own request — only the other party can.\nOn approval, the requested delta is applied to the credit.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "finance-requests"
+                ],
+                "summary": "Approve a finance request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Credit ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "FinanceRequest ID (hex)",
+                        "name": "req_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/borrowings/{id}/requests/{req_id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Counterparty rejects a pending FinanceRequest — no change is\napplied to the credit; the request is marked rejected.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "finance-requests"
+                ],
+                "summary": "Reject a finance request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Credit ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "FinanceRequest ID (hex)",
+                        "name": "req_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/borrowings/{id}/take": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Records that the borrower received more money — increases amount.\nFor two-party credits this opens a FinanceRequest the lender must\napprove. For one-OID credits the change is applied immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "borrowings"
+                ],
+                "summary": "Take more on a borrowing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Borrowing ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Take data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_handlers.CreditActionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
@@ -1134,6 +1738,610 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/lendings": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns lendings where the authenticated user is the From party.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lendings"
+                ],
+                "summary": "List lendings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Records a new lending for the authenticated user. The borrower\nis set via to_user_id (registered user) or to_name (free string).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lendings"
+                ],
+                "summary": "Create lending",
+                "parameters": [
+                    {
+                        "description": "Lending data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_handlers.CreateLendingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/lendings/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a lending where the caller is the From party (lender).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lendings"
+                ],
+                "summary": "Get lending by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Lending ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates a lending where the borrower is a free-form name. For\nlendings between two registered users, use FinanceRequests.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lendings"
+                ],
+                "summary": "Update lending (one-OID credits only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Lending ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lending fields",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_handlers.UpdateLendingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes a one-OID lending, or a two-OID lending once it is\nfully resolved.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lendings"
+                ],
+                "summary": "Delete lending",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Lending ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/lendings/{id}/collect": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Records that the lender received money back — increases resolved_amount.\nFor two-party credits this opens a FinanceRequest the borrower\nmust approve. For one-OID credits the change is applied immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lendings"
+                ],
+                "summary": "Collect on a lending",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Lending ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Collect data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_handlers.CreditActionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/lendings/{id}/give": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Records that the lender extended more money — increases amount.\nFor two-party credits this opens a FinanceRequest the borrower\nmust approve. For one-OID credits the change is applied immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lendings"
+                ],
+                "summary": "Give more on a lending",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Lending ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Give data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_handlers.CreditActionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/lendings/{id}/requests/{req_id}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Counterparty approves a pending FinanceRequest. The requester\ncannot approve their own request — only the other party can.\nOn approval, the requested delta is applied to the credit.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "finance-requests"
+                ],
+                "summary": "Approve a finance request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Credit ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "FinanceRequest ID (hex)",
+                        "name": "req_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/lendings/{id}/requests/{req_id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Counterparty rejects a pending FinanceRequest — no change is\napplied to the credit; the request is marked rejected.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "finance-requests"
+                ],
+                "summary": "Reject a finance request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Credit ID (hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "FinanceRequest ID (hex)",
+                        "name": "req_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty"
                         }
@@ -2491,8 +3699,149 @@ const docTemplate = `{
                 }
             }
         },
+        "aslon1213_gift_pkg_repository.Credit": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "finance_requests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aslon1213_gift_pkg_repository.FinanceRequest"
+                    }
+                },
+                "from": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.FlexID"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "resolved": {
+                    "type": "boolean"
+                },
+                "resolved_amount": {
+                    "type": "number"
+                },
+                "to": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.FlexID"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.CreditSummary": {
+            "type": "object",
+            "properties": {
+                "borrowed": {
+                    "type": "number"
+                },
+                "lent": {
+                    "type": "number"
+                },
+                "net_credit": {
+                    "type": "number"
+                },
+                "outstanding_borrowed": {
+                    "type": "number"
+                },
+                "outstanding_lent": {
+                    "type": "number"
+                }
+            }
+        },
         "aslon1213_gift_pkg_repository.Empty": {
             "type": "object"
+        },
+        "aslon1213_gift_pkg_repository.FinanceRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "decided_at": {
+                    "type": "string"
+                },
+                "decided_by": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "requested_by": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.FinanceRequestStatus"
+                },
+                "type": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.FinanceRequestType"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.FinanceRequestStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "approved",
+                "rejected"
+            ],
+            "x-enum-varnames": [
+                "FinanceRequestPending",
+                "FinanceRequestApproved",
+                "FinanceRequestRejected"
+            ]
+        },
+        "aslon1213_gift_pkg_repository.FinanceRequestType": {
+            "type": "string",
+            "enum": [
+                "increase_amount",
+                "decrease_amount",
+                "increase_resolved_amount",
+                "decrease_resolved_amount"
+            ],
+            "x-enum-varnames": [
+                "FinanceRequestIncreaseAmount",
+                "FinanceRequestDecreaseAmount",
+                "FinanceRequestIncreaseResolvedAmount",
+                "FinanceRequestDecreaseResolvedAmount"
+            ]
+        },
+        "aslon1213_gift_pkg_repository.FlexID": {
+            "type": "object",
+            "properties": {
+                "is_oid": {
+                    "type": "boolean"
+                },
+                "oid": {
+                    "type": "string"
+                },
+                "str": {
+                    "type": "string"
+                }
+            }
         },
         "aslon1213_gift_pkg_repository.Goal": {
             "type": "object",
@@ -2620,6 +3969,25 @@ const docTemplate = `{
                 }
             }
         },
+        "aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Credit": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aslon1213_gift_pkg_repository.Credit"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
         "aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Goal": {
             "type": "object",
             "properties": {
@@ -2720,6 +4088,22 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/aslon1213_gift_pkg_repository.Budget"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.Credit"
                 },
                 "message": {
                     "type": "string",
@@ -2891,6 +4275,22 @@ const docTemplate = `{
                 }
             }
         },
+        "aslon1213_gift_pkg_repository.Response-pkg_handlers_UserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/pkg_handlers.UserInfoResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
         "aslon1213_gift_pkg_repository.Spending": {
             "type": "object",
             "properties": {
@@ -2970,6 +4370,32 @@ const docTemplate = `{
                 }
             }
         },
+        "pkg_handlers.CreateBorrowingRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "from_name": {
+                    "type": "string"
+                },
+                "from_user_id": {
+                    "type": "string"
+                },
+                "resolved_amount": {
+                    "type": "number"
+                }
+            }
+        },
         "pkg_handlers.CreateGroupRequest": {
             "type": "object",
             "properties": {
@@ -2992,6 +4418,32 @@ const docTemplate = `{
                 }
             }
         },
+        "pkg_handlers.CreateLendingRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "resolved_amount": {
+                    "type": "number"
+                },
+                "to_name": {
+                    "type": "string"
+                },
+                "to_user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "pkg_handlers.CreateSpendingRequest": {
             "type": "object",
             "properties": {
@@ -3011,6 +4463,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "group_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.CreditActionInput": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "description": {
                     "type": "string"
                 }
             }
@@ -3188,6 +4651,35 @@ const docTemplate = `{
                 }
             }
         },
+        "pkg_handlers.UpdateBorrowingRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "from_name": {
+                    "type": "string"
+                },
+                "from_user_id": {
+                    "type": "string"
+                },
+                "resolved": {
+                    "type": "boolean"
+                },
+                "resolved_amount": {
+                    "type": "number"
+                }
+            }
+        },
         "pkg_handlers.UpdateGroupRequest": {
             "type": "object",
             "properties": {
@@ -3207,6 +4699,35 @@ const docTemplate = `{
                 "owner_id": {
                     "type": "string",
                     "example": "60d5ec49f99a2d3a829a7d1e"
+                }
+            }
+        },
+        "pkg_handlers.UpdateLendingRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "resolved": {
+                    "type": "boolean"
+                },
+                "resolved_amount": {
+                    "type": "number"
+                },
+                "to_name": {
+                    "type": "string"
+                },
+                "to_user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -3243,6 +4764,38 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_handlers.UserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "credits": {
+                    "$ref": "#/definitions/aslon1213_gift_pkg_repository.CreditSummary"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }

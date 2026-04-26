@@ -25,7 +25,103 @@ definitions:
       user_id:
         type: string
     type: object
+  aslon1213_gift_pkg_repository.Credit:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      finance_requests:
+        items:
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.FinanceRequest'
+        type: array
+      from:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.FlexID'
+      id:
+        type: string
+      resolved:
+        type: boolean
+      resolved_amount:
+        type: number
+      to:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.FlexID'
+      updated_at:
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.CreditSummary:
+    properties:
+      borrowed:
+        type: number
+      lent:
+        type: number
+      net_credit:
+        type: number
+      outstanding_borrowed:
+        type: number
+      outstanding_lent:
+        type: number
+    type: object
   aslon1213_gift_pkg_repository.Empty:
+    type: object
+  aslon1213_gift_pkg_repository.FinanceRequest:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      decided_at:
+        type: string
+      decided_by:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      requested_by:
+        type: string
+      status:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.FinanceRequestStatus'
+      type:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.FinanceRequestType'
+      updated_at:
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.FinanceRequestStatus:
+    enum:
+    - pending
+    - approved
+    - rejected
+    type: string
+    x-enum-varnames:
+    - FinanceRequestPending
+    - FinanceRequestApproved
+    - FinanceRequestRejected
+  aslon1213_gift_pkg_repository.FinanceRequestType:
+    enum:
+    - increase_amount
+    - decrease_amount
+    - increase_resolved_amount
+    - decrease_resolved_amount
+    type: string
+    x-enum-varnames:
+    - FinanceRequestIncreaseAmount
+    - FinanceRequestDecreaseAmount
+    - FinanceRequestIncreaseResolvedAmount
+    - FinanceRequestDecreaseResolvedAmount
+  aslon1213_gift_pkg_repository.FlexID:
+    properties:
+      is_oid:
+        type: boolean
+      oid:
+        type: string
+      str:
+        type: string
     type: object
   aslon1213_gift_pkg_repository.Goal:
     properties:
@@ -111,6 +207,19 @@ definitions:
         example: success
         type: string
     type: object
+  aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Credit:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/aslon1213_gift_pkg_repository.Credit'
+        type: array
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Goal:
     properties:
       data:
@@ -180,6 +289,17 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/aslon1213_gift_pkg_repository.Budget'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit:
+    properties:
+      data:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.Credit'
       message:
         example: ok
         type: string
@@ -297,6 +417,17 @@ definitions:
         example: success
         type: string
     type: object
+  aslon1213_gift_pkg_repository.Response-pkg_handlers_UserInfoResponse:
+    properties:
+      data:
+        $ref: '#/definitions/pkg_handlers.UserInfoResponse'
+      message:
+        example: ok
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   aslon1213_gift_pkg_repository.Spending:
     properties:
       amount:
@@ -349,6 +480,23 @@ definitions:
       amount:
         type: number
     type: object
+  pkg_handlers.CreateBorrowingRequest:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      from_name:
+        type: string
+      from_user_id:
+        type: string
+      resolved_amount:
+        type: number
+    type: object
   pkg_handlers.CreateGroupRequest:
     properties:
       member_ids:
@@ -364,6 +512,23 @@ definitions:
         example: 60d5ec49f99a2d3a829a7d1e
         type: string
     type: object
+  pkg_handlers.CreateLendingRequest:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      resolved_amount:
+        type: number
+      to_name:
+        type: string
+      to_user_id:
+        type: string
+    type: object
   pkg_handlers.CreateSpendingRequest:
     properties:
       amount:
@@ -377,6 +542,13 @@ definitions:
       description:
         type: string
       group_id:
+        type: string
+    type: object
+  pkg_handlers.CreditActionInput:
+    properties:
+      amount:
+        type: number
+      description:
         type: string
     type: object
   pkg_handlers.InviteMemberRequest:
@@ -491,6 +663,25 @@ definitions:
       stats:
         $ref: '#/definitions/pkg_handlers.ServerStats'
     type: object
+  pkg_handlers.UpdateBorrowingRequest:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      from_name:
+        type: string
+      from_user_id:
+        type: string
+      resolved:
+        type: boolean
+      resolved_amount:
+        type: number
+    type: object
   pkg_handlers.UpdateGroupRequest:
     properties:
       member_ids:
@@ -504,6 +695,25 @@ definitions:
         type: string
       owner_id:
         example: 60d5ec49f99a2d3a829a7d1e
+        type: string
+    type: object
+  pkg_handlers.UpdateLendingRequest:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      resolved:
+        type: boolean
+      resolved_amount:
+        type: number
+      to_name:
+        type: string
+      to_user_id:
         type: string
     type: object
   pkg_handlers.UpdateSpendingRequest:
@@ -528,6 +738,27 @@ definitions:
       name:
         type: string
       password:
+        type: string
+    type: object
+  pkg_handlers.UserInfoResponse:
+    properties:
+      balance:
+        type: number
+      created_at:
+        type: string
+      credits:
+        $ref: '#/definitions/aslon1213_gift_pkg_repository.CreditSummary'
+      currency:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      updated_at:
         type: string
     type: object
 externalDocs:
@@ -626,14 +857,15 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves the authenticated user's information
+      description: Retrieves the authenticated user's information along with a credit
+        summary.
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_User'
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-pkg_handlers_UserInfoResponse'
         "401":
           description: Unauthorized
           schema:
@@ -645,6 +877,412 @@ paths:
       summary: Get user info
       tags:
       - auth
+  /api/v1/borrowings:
+    get:
+      description: Returns borrowings where the authenticated user is the To party.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Credit'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: List borrowings
+      tags:
+      - borrowings
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Records a new borrowing for the authenticated user. The lender
+        is set via from_user_id (registered user) or from_name (free string).
+      parameters:
+      - description: Borrowing data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_handlers.CreateBorrowingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Create borrowing
+      tags:
+      - borrowings
+  /api/v1/borrowings/{id}:
+    delete:
+      description: |-
+        Deletes a one-OID borrowing, or a two-OID borrowing once it is
+        fully resolved.
+      parameters:
+      - description: Borrowing ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete borrowing
+      tags:
+      - borrowings
+    get:
+      description: Returns a borrowing where the caller is the To party (borrower).
+      parameters:
+      - description: Borrowing ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Get borrowing by ID
+      tags:
+      - borrowings
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Updates a borrowing where the lender is a free-form name. For
+        borrowings between two registered users, use FinanceRequests.
+      parameters:
+      - description: Borrowing ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Borrowing fields
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_handlers.UpdateBorrowingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Update borrowing (one-OID credits only)
+      tags:
+      - borrowings
+  /api/v1/borrowings/{id}/repay:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Records a repayment on a borrowing — increases resolved_amount.
+        For two-party credits this opens a FinanceRequest the lender must
+        approve. For one-OID credits the change is applied immediately.
+      parameters:
+      - description: Borrowing ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Repayment data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_handlers.CreditActionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Repay borrowing
+      tags:
+      - borrowings
+  /api/v1/borrowings/{id}/requests/{req_id}/approve:
+    post:
+      description: |-
+        Counterparty approves a pending FinanceRequest. The requester
+        cannot approve their own request — only the other party can.
+        On approval, the requested delta is applied to the credit.
+      parameters:
+      - description: Credit ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: FinanceRequest ID (hex)
+        in: path
+        name: req_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Approve a finance request
+      tags:
+      - finance-requests
+  /api/v1/borrowings/{id}/requests/{req_id}/reject:
+    post:
+      description: |-
+        Counterparty rejects a pending FinanceRequest — no change is
+        applied to the credit; the request is marked rejected.
+      parameters:
+      - description: Credit ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: FinanceRequest ID (hex)
+        in: path
+        name: req_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Reject a finance request
+      tags:
+      - finance-requests
+  /api/v1/borrowings/{id}/take:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Records that the borrower received more money — increases amount.
+        For two-party credits this opens a FinanceRequest the lender must
+        approve. For one-OID credits the change is applied immediately.
+      parameters:
+      - description: Borrowing ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Take data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_handlers.CreditActionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Take more on a borrowing
+      tags:
+      - borrowings
   /api/v1/budgets:
     get:
       description: Returns all budgets for the authenticated user
@@ -1290,6 +1928,412 @@ paths:
       summary: Update income
       tags:
       - incomes
+  /api/v1/lendings:
+    get:
+      description: Returns lendings where the authenticated user is the From party.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-array_aslon1213_gift_pkg_repository_Credit'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: List lendings
+      tags:
+      - lendings
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Records a new lending for the authenticated user. The borrower
+        is set via to_user_id (registered user) or to_name (free string).
+      parameters:
+      - description: Lending data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_handlers.CreateLendingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Create lending
+      tags:
+      - lendings
+  /api/v1/lendings/{id}:
+    delete:
+      description: |-
+        Deletes a one-OID lending, or a two-OID lending once it is
+        fully resolved.
+      parameters:
+      - description: Lending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete lending
+      tags:
+      - lendings
+    get:
+      description: Returns a lending where the caller is the From party (lender).
+      parameters:
+      - description: Lending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Get lending by ID
+      tags:
+      - lendings
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Updates a lending where the borrower is a free-form name. For
+        lendings between two registered users, use FinanceRequests.
+      parameters:
+      - description: Lending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lending fields
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_handlers.UpdateLendingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Update lending (one-OID credits only)
+      tags:
+      - lendings
+  /api/v1/lendings/{id}/collect:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Records that the lender received money back — increases resolved_amount.
+        For two-party credits this opens a FinanceRequest the borrower
+        must approve. For one-OID credits the change is applied immediately.
+      parameters:
+      - description: Lending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Collect data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_handlers.CreditActionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Collect on a lending
+      tags:
+      - lendings
+  /api/v1/lendings/{id}/give:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Records that the lender extended more money — increases amount.
+        For two-party credits this opens a FinanceRequest the borrower
+        must approve. For one-OID credits the change is applied immediately.
+      parameters:
+      - description: Lending ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Give data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_handlers.CreditActionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Give more on a lending
+      tags:
+      - lendings
+  /api/v1/lendings/{id}/requests/{req_id}/approve:
+    post:
+      description: |-
+        Counterparty approves a pending FinanceRequest. The requester
+        cannot approve their own request — only the other party can.
+        On approval, the requested delta is applied to the credit.
+      parameters:
+      - description: Credit ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: FinanceRequest ID (hex)
+        in: path
+        name: req_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Approve a finance request
+      tags:
+      - finance-requests
+  /api/v1/lendings/{id}/requests/{req_id}/reject:
+    post:
+      description: |-
+        Counterparty rejects a pending FinanceRequest — no change is
+        applied to the credit; the request is marked rejected.
+      parameters:
+      - description: Credit ID (hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: FinanceRequest ID (hex)
+        in: path
+        name: req_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Credit'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/aslon1213_gift_pkg_repository.Response-aslon1213_gift_pkg_repository_Empty'
+      security:
+      - ApiKeyAuth: []
+      summary: Reject a finance request
+      tags:
+      - finance-requests
   /api/v1/settings:
     get:
       description: Returns server identity (host/uptime/version), runtime stats and

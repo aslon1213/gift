@@ -14,15 +14,18 @@ import (
 var Version = "v0.4.2"
 
 type Handlers struct {
-	UserHandler     *UserHandler
-	GroupHandler    *GroupHandler
-	SpendingHandler *SpendingHandler
-	IncomeHandler   *IncomeHandler
-	GoalHandler     *GoalHandler
-	BudgetHandler   *BudgetHandler
-	AlertHandler    *AlertHandler
-	SettingsHandler *SettingsHandler
-	AuthHandler     *AuthHandler
+	UserHandler           *UserHandler
+	GroupHandler          *GroupHandler
+	SpendingHandler       *SpendingHandler
+	IncomeHandler         *IncomeHandler
+	GoalHandler           *GoalHandler
+	BudgetHandler         *BudgetHandler
+	AlertHandler          *AlertHandler
+	BorrowingHandler      *BorrowingHandler
+	LendingHandler        *LendingHandler
+	FinanceRequestHandler *FinanceRequestHandler
+	SettingsHandler       *SettingsHandler
+	AuthHandler           *AuthHandler
 }
 
 func NewHandlers(repo *repository.Repository, db *mongo.Database, startedAt time.Time) *Handlers {
@@ -30,14 +33,17 @@ func NewHandlers(repo *repository.Repository, db *mongo.Database, startedAt time
 	config := configs.GetConfig()
 
 	return &Handlers{
-		UserHandler:     NewUserHandler(repo.Users),
-		GroupHandler:    NewGroupHandler(repo.Groups),
-		SpendingHandler: NewSpendingHandler(repo.Spendings, repo.Groups, repo.Users, repo.Budgets),
-		IncomeHandler:   NewIncomeHandler(repo.Incomes, repo.Users),
-		GoalHandler:     NewGoalHandler(repo.Goals),
-		BudgetHandler:   NewBudgetHandler(repo.Budgets),
-		AlertHandler:    NewAlertHandler(repo.Alerts),
-		SettingsHandler: NewSettingsHandler(repo.Users, repo.Groups, repo.Budgets, repo.Goals, db, startedAt, Version),
-		AuthHandler:     NewAuthHandler(services.NewAuthService(repo.Users, repo.RefreshTokens, config.Auth.JwtSecret, config.Auth.JwtExpiresIn), repo.Users),
+		UserHandler:           NewUserHandler(repo.Users),
+		GroupHandler:          NewGroupHandler(repo.Groups),
+		SpendingHandler:       NewSpendingHandler(repo.Spendings, repo.Groups, repo.Users, repo.Budgets),
+		IncomeHandler:         NewIncomeHandler(repo.Incomes, repo.Users),
+		GoalHandler:           NewGoalHandler(repo.Goals),
+		BudgetHandler:         NewBudgetHandler(repo.Budgets),
+		AlertHandler:          NewAlertHandler(repo.Alerts),
+		BorrowingHandler:      NewBorrowingHandler(repo.Credits),
+		LendingHandler:        NewLendingHandler(repo.Credits),
+		FinanceRequestHandler: NewFinanceRequestHandler(repo.Credits),
+		SettingsHandler:       NewSettingsHandler(repo.Users, repo.Groups, repo.Budgets, repo.Goals, db, startedAt, Version),
+		AuthHandler:           NewAuthHandler(services.NewAuthService(repo.Users, repo.RefreshTokens, config.Auth.JwtSecret, config.Auth.JwtExpiresIn), repo.Users, repo.Credits),
 	}
 }

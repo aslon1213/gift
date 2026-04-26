@@ -63,14 +63,23 @@ type RefreshResponse struct {
 type AuthHandler struct {
 	authService *services.AuthService
 	users       *repository.UserRepository
+	credits     *repository.CreditRepository
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(authService *services.AuthService, users *repository.UserRepository) *AuthHandler {
+func NewAuthHandler(authService *services.AuthService, users *repository.UserRepository, credits *repository.CreditRepository) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
 		users:       users,
+		credits:     credits,
 	}
+}
+
+// UserInfoResponse is the GetUserInfo payload: the user record plus a
+// computed credit summary the client renders directly.
+type UserInfoResponse struct {
+	*repository.User
+	Credits *repository.CreditSummary `json:"credits"`
 }
 
 func getAccessTokenExpiry(token string) time.Time {
@@ -277,11 +286,11 @@ func (ah *AuthHandler) RefreshToken(c fiber.Ctx) error {
 
 // GetUserInfo godoc
 // @Summary      Get user info
-// @Description  Retrieves the authenticated user's information
+// @Description  Retrieves the authenticated user's information along with a credit summary.
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Success      200  {object} repository.Response[repository.User]
+// @Success      200  {object} repository.Response[UserInfoResponse]
 // @Failure      401  {object} repository.Response[repository.Empty]
 // @Failure      500  {object} repository.Response[repository.Empty]
 // @Router       /api/v1/auth/me [get]
@@ -298,5 +307,12 @@ func (ah *AuthHandler) GetUserInfo(c fiber.Ctx) error {
 	if user.Currency == "" {
 		user.Currency = "UZS"
 	}
-	return repository.OK(c, "user info fetched successfully", user)
+	credits, err := ah.credits.Summary(context.Background(), userID)
+	if err != nil {
+		return repository.Internal(c, "internal server error")
+	}
+	return repository.OK(c, "user info fetched successfully", UserInfoResponse{
+		User:    user,
+		Credits: credits,
+	})
 }

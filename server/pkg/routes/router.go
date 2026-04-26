@@ -112,4 +112,28 @@ func (r *Router) RegisterRoutes(app *fiber.App) {
 	alerts.Put("/:id", r.handlers.AlertHandler.Update)
 	alerts.Delete("/:id", r.handlers.AlertHandler.Delete)
 
+	// borrowings
+	borrowings := api.Group("/borrowings", middleware.Protected())
+	borrowings.Get("/", r.handlers.BorrowingHandler.List)
+	borrowings.Post("/", r.handlers.BorrowingHandler.Create)
+	borrowings.Get("/:id", r.handlers.BorrowingHandler.Get)
+	borrowings.Put("/:id", r.handlers.BorrowingHandler.Update)
+	borrowings.Delete("/:id", r.handlers.BorrowingHandler.Delete)
+	borrowings.Post("/:id/repay", r.handlers.BorrowingHandler.Repay)
+	borrowings.Post("/:id/take", r.handlers.BorrowingHandler.Take)
+	borrowings.Post("/:id/requests/:req_id/approve", r.handlers.FinanceRequestHandler.Approve)
+	borrowings.Post("/:id/requests/:req_id/reject", r.handlers.FinanceRequestHandler.Reject)
+
+	// lendings
+	lendings := api.Group("/lendings", middleware.Protected())
+	lendings.Get("/", r.handlers.LendingHandler.List)
+	lendings.Post("/", r.handlers.LendingHandler.Create)
+	lendings.Get("/:id", r.handlers.LendingHandler.Get)
+	lendings.Put("/:id", r.handlers.LendingHandler.Update)
+	lendings.Delete("/:id", r.handlers.LendingHandler.Delete)
+	lendings.Post("/:id/give", r.handlers.LendingHandler.Give)
+	lendings.Post("/:id/collect", r.handlers.LendingHandler.Collect)
+	lendings.Post("/:id/requests/:req_id/approve", r.handlers.FinanceRequestHandler.Approve)
+	lendings.Post("/:id/requests/:req_id/reject", r.handlers.FinanceRequestHandler.Reject)
+
 }

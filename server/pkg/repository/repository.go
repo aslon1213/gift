@@ -10,6 +10,7 @@ type Repository struct {
 	Goals         *GoalRepository
 	Budgets       *BudgetRepository
 	Alerts        *AlertRepository
+	Credits       *CreditRepository
 	RefreshTokens *RefreshTokenRepository
 }
 
@@ -22,6 +23,7 @@ func NewRepository(db *mongo.Database) *Repository {
 		Goals:         NewGoalRepository(db),
 		Budgets:       NewBudgetRepository(db),
 		Alerts:        NewAlertRepository(db),
+		Credits:       NewCreditRepository(db),
 		RefreshTokens: NewRefreshTokenRepository(db),
 	}
 }
