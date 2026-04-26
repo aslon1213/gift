@@ -106,5 +106,12 @@ defineProps<{
       <rect x="3" y="6" width="14" height="10" rx="2" />
       <path d="M3 9h14M14 12h1" />
     </g>
+    <g v-else-if="name === 'mic'">
+      <rect x="8" y="3" width="4" height="9" rx="2" />
+      <path d="M5 10a5 5 0 0010 0M10 15v3M7 18h6" />
+    </g>
+    <g v-else-if="name === 'sparkle'">
+      <path d="M10 3v4M10 13v4M3 10h4M13 10h4M5.5 5.5l2 2M12.5 12.5l2 2M14.5 5.5l-2 2M7.5 12.5l-2 2" />
+    </g>
   </svg>
 </template>

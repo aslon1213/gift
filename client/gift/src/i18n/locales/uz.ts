@@ -19,6 +19,8 @@ export default {
 
   'nav.home': 'Bosh',
   'nav.groups': 'Guruhlar',
+  'nav.spendings': 'Chiqimlar',
+  'nav.incomes': 'Kirimlar',
   'nav.budget': 'Byudjet',
   'nav.goals': 'Maqsadlar',
   'nav.server': 'Server',
@@ -82,6 +84,8 @@ export default {
   'budgets.cap_a_category': 'Chegara qo‘ying.',
   'budgets.category': 'KATEGORIYA',
   'budgets.category_placeholder': "Taom, Sayohat, Ijara…",
+  'budgets.limit': 'CHEGARA',
+  'budgets.already_spent': 'SARFLANDI',
   'budgets.period': 'DAVR',
   'budgets.period.weekly': 'haftalik',
   'budgets.period.monthly': 'oylik',
@@ -146,4 +150,23 @@ export default {
   'lang.en': 'Inglizcha',
   'lang.ru': 'Ruscha',
   'lang.uz': "O'zbekcha",
+
+  'voice.tap_to_speak': 'Gapiring',
+  'voice.recording_tap_to_stop': "To'xtatish uchun bosing",
+  'voice.parsing': 'Tushunilmoqda…',
+  'voice.error': 'Ovoz ishlamadi',
+  'voice.not_configured': "Avval AI provayderni sozlang",
+  'voice.filled_from_speech': "Ovozdan to'ldirildi",
+  'voice.nothing_understood': 'Tanib bo\'lmadi',
+
+  'settings.ai': 'AI va ovoz',
+  'settings.ai_provider': 'AI provayder',
+  'settings.ai_base_url': 'Asosiy URL',
+  'settings.ai_api_key': 'API kalit',
+  'settings.ai_chat_model': 'Audio-chat modeli',
+  'settings.ai_save': 'AI sozlamalarini saqlash',
+  'settings.ai_hint':
+    "OpenAI-mos, audio kirish bilan ishlaydigan endpoint (masalan gpt-4o-audio-preview). Ovoz to'g'ridan-to'g'ri modelga beriladi — alohida transkripsiya yo'q.",
+  'settings.ai_configured': 'Sozlangan',
+  'settings.ai_not_configured': 'Sozlanmagan',
 }

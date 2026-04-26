@@ -21,6 +21,8 @@ export default {
   // Navigation
   'nav.home': 'Home',
   'nav.groups': 'Groups',
+  'nav.spendings': 'Spendings',
+  'nav.incomes': 'Incomes',
   'nav.budget': 'Budget',
   'nav.goals': 'Goals',
   'nav.server': 'Server',
@@ -87,6 +89,8 @@ export default {
   'budgets.cap_a_category': 'Cap a category.',
   'budgets.category': 'CATEGORY',
   'budgets.category_placeholder': 'Food, Travel, Rent…',
+  'budgets.limit': 'LIMIT',
+  'budgets.already_spent': 'ALREADY SPENT',
   'budgets.period': 'PERIOD',
   'budgets.period.weekly': 'weekly',
   'budgets.period.monthly': 'monthly',
@@ -156,4 +160,25 @@ export default {
   'lang.en': 'English',
   'lang.ru': 'Russian',
   'lang.uz': 'Uzbek',
+
+  // Voice input
+  'voice.tap_to_speak': 'Speak',
+  'voice.recording_tap_to_stop': 'Tap to stop',
+  'voice.parsing': 'Understanding…',
+  'voice.error': 'Voice failed',
+  'voice.not_configured': 'Configure your AI provider first',
+  'voice.filled_from_speech': 'Filled from speech',
+  'voice.nothing_understood': "Couldn't parse speech",
+
+  // AI / LLM settings
+  'settings.ai': 'AI & Voice',
+  'settings.ai_provider': 'AI provider',
+  'settings.ai_base_url': 'Base URL',
+  'settings.ai_api_key': 'API key',
+  'settings.ai_chat_model': 'Audio-capable chat model',
+  'settings.ai_save': 'Save AI settings',
+  'settings.ai_hint':
+    'Any OpenAI-compatible endpoint with audio input support (e.g. gpt-4o-audio-preview). Voice goes straight to the model — no separate transcription step.',
+  'settings.ai_configured': 'Configured',
+  'settings.ai_not_configured': 'Not configured',
 }

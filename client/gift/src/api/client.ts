@@ -17,7 +17,6 @@ export class ApiError extends Error {
 
 export interface RequestOptions {
   auth?: boolean
-  raw?: boolean
 }
 
 async function rawFetch(path: string, init: RequestInit, withAuth: boolean): Promise<Response> {
@@ -31,22 +30,15 @@ async function rawFetch(path: string, init: RequestInit, withAuth: boolean): Pro
   return fetch(`${apiBase()}${path}`, { ...init, headers })
 }
 
+// Every endpoint returns the unified envelope { status, message, data }, so
+// there is a single parse path: surface `message` on error, return `data` on
+// success.
 async function parseWrapped<T>(res: Response): Promise<T> {
   const body = (await res.json().catch(() => null)) as ApiResponse<T> | null
   if (!res.ok || body?.status === 'error') {
     throw new ApiError(body?.message ?? `Request failed (${res.status})`, res.status)
   }
   return (body?.data as T) ?? (null as unknown as T)
-}
-
-async function parseRaw<T>(res: Response): Promise<T> {
-  const body = await res.json().catch(() => null) as any
-  if (!res.ok) {
-    const msg =
-      (body && (body.error || body.message)) ?? `Request failed (${res.status})`
-    throw new ApiError(String(msg), res.status)
-  }
-  return body as T
 }
 
 async function refreshOnce(): Promise<boolean> {
@@ -78,7 +70,7 @@ export async function request<T>(
       auth.clear()
     }
   }
-  return opts.raw ? parseRaw<T>(res) : parseWrapped<T>(res)
+  return parseWrapped<T>(res)
 }
 
 export const api = {

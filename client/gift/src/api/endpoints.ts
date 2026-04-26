@@ -86,10 +86,11 @@ export const spendingApi = {
   update: (id: string, body: Partial<Spending>) =>
     api.put<Spending>(`/spendings/${id}`, body),
   remove: (id: string) => api.delete<null>(`/spendings/${id}`),
+  linkBudget: (id: string, budgetId: string) =>
+    api.post<null>(`/spendings/${id}/budgets/${budgetId}/link`, {}),
+  unlinkBudget: (id: string, budgetId: string) =>
+    api.post<null>(`/spendings/${id}/budgets/${budgetId}/unlink`, {}),
 }
-
-// Incomes handler returns raw JSON (arrays/objects, not {status,message,data}).
-const RAW = { raw: true } as const
 
 export interface CreateIncomeBody {
   amount: number
@@ -100,16 +101,17 @@ export interface CreateIncomeBody {
 }
 
 export const incomeApi = {
-  list: () => api.get<Income[]>('/incomes', RAW),
-  get: (id: string) => api.get<Income>(`/incomes/${id}`, RAW),
-  create: (body: CreateIncomeBody) => api.post<Income>('/incomes', body, RAW),
-  update: (id: string, body: CreateIncomeBody) => api.put<Income>(`/incomes/${id}`, body, RAW),
-  remove: (id: string) => api.delete<{ deleted: boolean }>(`/incomes/${id}`, RAW),
+  list: () => api.get<Income[]>('/incomes'),
+  get: (id: string) => api.get<Income>(`/incomes/${id}`),
+  create: (body: CreateIncomeBody) => api.post<Income>('/incomes', body),
+  update: (id: string, body: CreateIncomeBody) => api.put<Income>(`/incomes/${id}`, body),
+  remove: (id: string) => api.delete<{ deleted: boolean }>(`/incomes/${id}`),
 }
 
 export interface CreateBudgetBody {
   category: string
-  amount: number
+  limit: number
+  amount?: number
   currency?: string
   period?: string
   start_date?: string
@@ -117,11 +119,16 @@ export interface CreateBudgetBody {
 }
 
 export const budgetApi = {
-  list: () => api.get<Budget[]>('/budgets', RAW),
-  get: (id: string) => api.get<Budget>(`/budgets/${id}`, RAW),
-  create: (body: CreateBudgetBody) => api.post<Budget>('/budgets', body, RAW),
-  update: (id: string, body: CreateBudgetBody) => api.put<Budget>(`/budgets/${id}`, body, RAW),
-  remove: (id: string) => api.delete<{ deleted: boolean }>(`/budgets/${id}`, RAW),
+  list: () => api.get<Budget[]>('/budgets'),
+  get: (id: string) => api.get<Budget>(`/budgets/${id}`),
+  create: (body: CreateBudgetBody) => api.post<Budget>('/budgets', body),
+  update: (id: string, body: Partial<CreateBudgetBody>) =>
+    api.put<Budget>(`/budgets/${id}`, body),
+  remove: (id: string) => api.delete<{ deleted: boolean }>(`/budgets/${id}`),
+  increase: (id: string, amount: number) =>
+    api.post<Budget>(`/budgets/${id}/increase?amount=${encodeURIComponent(String(amount))}`, {}),
+  decrease: (id: string, amount: number) =>
+    api.post<Budget>(`/budgets/${id}/decrease?amount=${encodeURIComponent(String(amount))}`, {}),
 }
 
 export interface CreateGoalBody {
@@ -134,17 +141,17 @@ export interface CreateGoalBody {
 }
 
 export const goalApi = {
-  list: () => api.get<Goal[]>('/goals', RAW),
-  get: (id: string) => api.get<Goal>(`/goals/${id}`, RAW),
-  create: (body: CreateGoalBody) => api.post<Goal>('/goals', body, RAW),
-  update: (id: string, body: CreateGoalBody) => api.put<Goal>(`/goals/${id}`, body, RAW),
-  remove: (id: string) => api.delete<{ deleted: boolean }>(`/goals/${id}`, RAW),
+  list: () => api.get<Goal[]>('/goals'),
+  get: (id: string) => api.get<Goal>(`/goals/${id}`),
+  create: (body: CreateGoalBody) => api.post<Goal>('/goals', body),
+  update: (id: string, body: CreateGoalBody) => api.put<Goal>(`/goals/${id}`, body),
+  remove: (id: string) => api.delete<{ deleted: boolean }>(`/goals/${id}`),
   contribute: (id: string, amount: number) =>
-    api.post<Goal>(`/goals/${id}/contribute`, { amount }, RAW),
+    api.post<Goal>(`/goals/${id}/contribute`, { amount }),
 }
 
 export const settingsApi = {
-  get: () => api.get<SettingsInfo>('/settings', RAW),
+  get: () => api.get<SettingsInfo>('/settings'),
   // Downloads an export — JSON as a .json file, CSV as a .zip of per-collection CSVs.
   // Uses fetch directly because the response is binary/text, not a wrapped JSON payload.
   export: async (format: 'json' | 'csv') => {

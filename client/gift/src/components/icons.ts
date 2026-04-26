@@ -28,3 +28,5 @@ export type IconName =
   | 'home2'
   | 'gift'
   | 'wallet'
+  | 'mic'
+  | 'sparkle'

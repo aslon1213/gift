@@ -1,20 +1,36 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { groupApi, spendingApi, userApi } from '../api/endpoints'
-import type { Group, Spending, User } from '../api/types'
+import { budgetApi, groupApi, spendingApi, userApi } from '../api/endpoints'
+import type { Budget, Group, Spending, User } from '../api/types'
 import { auth } from '../stores/auth'
 import { toast } from '../stores/toast'
 import Icon from '../components/Icon.vue'
 import Avatar from '../components/Avatar.vue'
+import VoiceInputButton from '../components/VoiceInputButton.vue'
 import type { IconName } from '../components/icons'
 import { colorForId, money } from '../utils/format'
 import { sumBy } from '../utils/charts'
+import { parseSpendingFromAudio, type SpendingDraft } from '../ai/parse'
+import { t } from '../i18n'
 
 const groups = ref<Group[]>([])
 const spendings = ref<Spending[]>([])
 const members = ref<Record<string, User>>({})
+const budgets = ref<Budget[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
+
+function budgetTagsFor(s: Spending): string[] {
+  const ids = s.budgets ?? []
+  if (!ids.length || !budgets.value.length) return []
+  const byId = new Map(budgets.value.map((b) => [String(b.id), b.category]))
+  const tags: string[] = []
+  for (const id of ids) {
+    const cat = byId.get(String(id))
+    if (cat) tags.push(cat)
+  }
+  return tags
+}
 
 const filterGroup = ref<string>('')
 const filterCategory = ref<string>('')
@@ -160,6 +176,33 @@ async function loadGroupMembers(g: Group) {
   members.value = next
 }
 
+function applySpendingDraft(draft: SpendingDraft) {
+  if (draft.amount != null && draft.amount > 0) {
+    amountStr.value = String(draft.amount)
+  }
+  if (draft.currency) {
+    addCurrency.value = draft.currency.toUpperCase()
+  }
+  if (draft.category) {
+    const match = CATEGORIES.find(
+      (c) => c.label.toLowerCase() === draft.category!.toLowerCase(),
+    )
+    if (match) category.value = match
+  }
+  if (draft.description) {
+    description.value = draft.description
+  }
+  if (draft.date) {
+    const d = new Date(draft.date)
+    if (!Number.isNaN(d.getTime())) addDate.value = d.toISOString().slice(0, 10)
+  }
+  toast.flash(t('voice.filled_from_speech'))
+}
+
+function onVoiceError(msg: string) {
+  toast.flash(msg)
+}
+
 async function saveSpending() {
   if (amountNum.value <= 0 || !addGroupId.value) return
   submitting.value = true
@@ -277,8 +320,16 @@ function when(dateStr: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()
 }
 
+async function loadBudgets() {
+  try {
+    budgets.value = (await budgetApi.list()) ?? []
+  } catch {
+    // Tag rendering is non-critical — silently leave the list empty.
+  }
+}
+
 onMounted(async () => {
-  await loadGroups()
+  await Promise.all([loadGroups(), loadBudgets()])
   await load()
 })
 
@@ -358,6 +409,16 @@ watch([filterGroup, filterCategory], load)
             <div class="sub">
               {{ when(s.date) }} · {{ memberName(s.user_id) }} · {{ groupName(s.group_id) }}
             </div>
+            <div v-if="budgetTagsFor(s).length" class="tag-row">
+              <span
+                v-for="(tag, ti) in budgetTagsFor(s)"
+                :key="ti"
+                class="budget-tag"
+              >
+                <Icon name="gauge" :size="10" />
+                {{ tag }}
+              </span>
+            </div>
           </div>
           <div class="figure">
             <span class="cur">{{ s.currency || '$' }}</span>
@@ -395,10 +456,17 @@ watch([filterGroup, filterCategory], load)
             <div class="segment" :class="{ on: step >= 2 }"></div>
           </div>
 
-          <!-- Step 0 — amount + category -->
+          <!-- Step 0 — amount only -->
           <template v-if="step === 0">
             <div class="modal-body amount-body">
-              <div class="eyebrow">NEW SPENDING</div>
+              <div class="row spread" style="align-items: center">
+                <div class="eyebrow">NEW SPENDING</div>
+                <VoiceInputButton
+                  :parser="parseSpendingFromAudio"
+                  @result="applySpendingDraft"
+                  @error="onVoiceError"
+                />
+              </div>
               <div class="amount-display">
                 <span
                   class="cur"
@@ -423,20 +491,6 @@ watch([filterGroup, filterCategory], load)
                     {{ g.name.toUpperCase() }}
                   </option>
                 </select>
-              </div>
-
-              <div class="eyebrow" style="margin: 26px 0 10px">CATEGORY</div>
-              <div class="pill-row">
-                <button
-                  v-for="c in CATEGORIES"
-                  :key="c.id"
-                  class="pill"
-                  :class="{ on: category.id === c.id }"
-                  @click="category = c"
-                >
-                  <Icon :name="c.id" :size="16" />
-                  {{ c.label }}
-                </button>
               </div>
             </div>
 
@@ -465,14 +519,14 @@ watch([filterGroup, filterCategory], load)
             </div>
           </template>
 
-          <!-- Step 1 — who paid + split -->
+          <!-- Step 1 — who paid + split + description -->
           <template v-if="step === 1">
             <div class="modal-body">
               <h2 class="serif-h">
                 Who <em>paid?</em>
               </h2>
               <div class="eyebrow">
-                ${{ amountNum.toFixed(2) }} · {{ category.label }}
+                ${{ amountNum.toFixed(2) }}
               </div>
 
               <div class="payer-list">
@@ -554,6 +608,14 @@ watch([filterGroup, filterCategory], load)
                   </span>
                 </button>
               </div>
+
+              <label class="field" style="margin-top: 24px">
+                <span>DESCRIPTION</span>
+                <input
+                  v-model="description"
+                  placeholder="e.g. Dinner at Locavore"
+                />
+              </label>
             </div>
 
             <div class="modal-footer" style="display: flex; gap: 10px">
@@ -571,20 +633,12 @@ watch([filterGroup, filterCategory], load)
             </div>
           </template>
 
-          <!-- Step 2 — details & confirm -->
+          <!-- Step 2 — date, currency, category, confirm -->
           <template v-if="step === 2">
             <div class="modal-body">
               <h2 class="serif-h">One last <em>detail.</em></h2>
 
-              <label class="field" style="margin-top: 18px">
-                <span>DESCRIPTION</span>
-                <input
-                  v-model="description"
-                  placeholder="e.g. Dinner at Locavore"
-                />
-              </label>
-
-              <div class="split-grid">
+              <div class="split-grid" style="margin-top: 18px">
                 <label class="field">
                   <span>DATE</span>
                   <input type="date" v-model="addDate" />
@@ -593,6 +647,20 @@ watch([filterGroup, filterCategory], load)
                   <span>CURRENCY</span>
                   <input v-model="addCurrency" />
                 </label>
+              </div>
+
+              <div class="eyebrow" style="margin: 22px 0 10px">CATEGORY</div>
+              <div class="pill-row">
+                <button
+                  v-for="c in CATEGORIES"
+                  :key="c.id"
+                  class="pill"
+                  :class="{ on: category.id === c.id }"
+                  @click="category = c"
+                >
+                  <Icon :name="c.id" :size="16" />
+                  {{ c.label }}
+                </button>
               </div>
 
               <!-- Summary -->
@@ -866,5 +934,27 @@ watch([filterGroup, filterCategory], load)
 }
 .summary .s-rows .row span:first-child {
   color: rgba(245, 241, 232, 0.55);
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.budget-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--paper-deep);
+  color: var(--ink);
+  border: 1px solid var(--line-hard);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 </style>

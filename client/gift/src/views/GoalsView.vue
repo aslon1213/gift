@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import Icon from '../components/Icon.vue'
+import VoiceInputButton from '../components/VoiceInputButton.vue'
 import { goalApi } from '../api/endpoints'
 import type { Goal } from '../api/types'
 import { toast } from '../stores/toast'
 import { userStore } from '../stores/user'
 import { currencySymbol, moneyWhole, signed } from '../utils/format'
+import { parseGoalFromAudio, type GoalDraft } from '../ai/parse'
 import { t } from '../i18n'
 
 const currency = computed(() => userStore.currency.value)
@@ -65,6 +67,21 @@ function openCreate() {
   newDeadline.value = ''
   newTint.value = TINTS[0]
   showCreate.value = true
+}
+
+function applyGoalDraft(draft: GoalDraft) {
+  if (draft.name) newName.value = draft.name
+  if (draft.target_amount != null && draft.target_amount > 0) newTarget.value = draft.target_amount
+  if (draft.current_amount != null && draft.current_amount >= 0) newCurrent.value = draft.current_amount
+  if (draft.deadline) {
+    const d = new Date(draft.deadline)
+    if (!Number.isNaN(d.getTime())) newDeadline.value = d.toISOString().slice(0, 10)
+  }
+  toast.flash(t('voice.filled_from_speech'))
+}
+
+function onVoiceError(msg: string) {
+  toast.flash(msg)
 }
 
 async function createGoal() {
@@ -200,7 +217,14 @@ onMounted(load)
           </div>
 
           <div class="modal-body">
-            <h1 class="display">{{ t('goals.a_new_target') }}</h1>
+            <div class="row spread" style="align-items: center; margin-bottom: 10px">
+              <h1 class="display" style="margin: 0">{{ t('goals.a_new_target') }}</h1>
+              <VoiceInputButton
+                :parser="parseGoalFromAudio"
+                @result="applyGoalDraft"
+                @error="onVoiceError"
+              />
+            </div>
 
             <label class="field" style="margin-top: 20px">
               <span>{{ t('common.name') }}</span>

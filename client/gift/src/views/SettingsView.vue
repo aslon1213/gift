@@ -10,6 +10,7 @@ import { authApi, settingsApi } from '../api/endpoints'
 import type { CurrencyCode, SettingsInfo } from '../api/types'
 import { CURRENCY_CODES, CURRENCY_META } from '../utils/format'
 import { i18n, LOCALE_META, SUPPORTED_LOCALES, t, type Locale } from '../i18n'
+import { llm } from '../stores/llm'
 
 const router = useRouter()
 
@@ -20,6 +21,25 @@ const error = ref<string | null>(null)
 const showCurrency = ref(false)
 const showLanguage = ref(false)
 const showExport = ref(false)
+const showAi = ref(false)
+
+const aiForm = ref({ ...llm.config.value })
+const llmConfigured = computed(() => llm.isConfigured.value)
+
+function openAi() {
+  aiForm.value = { ...llm.config.value }
+  showAi.value = true
+}
+
+function saveAi() {
+  llm.set({
+    base_url: aiForm.value.base_url,
+    api_key: aiForm.value.api_key,
+    chat_model: aiForm.value.chat_model,
+  })
+  showAi.value = false
+  toast.flash(t('settings.ai_save'))
+}
 
 async function load() {
   loading.value = true
@@ -171,6 +191,14 @@ async function signOut() {
         <span class="r-value">—</span>
         <Icon name="chevR" :size="14" class="r-chev" />
       </button>
+      <button class="setting-row" @click="openAi">
+        <Icon name="mic" :size="18" class="r-icon" />
+        <span class="r-label">{{ t('settings.ai') }}</span>
+        <span class="r-value">
+          {{ llmConfigured ? t('settings.ai_configured') : t('settings.ai_not_configured') }}
+        </span>
+        <Icon name="chevR" :size="14" class="r-chev" />
+      </button>
       <button class="setting-row" @click="signOut">
         <Icon name="close" :size="18" class="r-icon" />
         <span class="r-label">{{ t('settings.sign_out') }}</span>
@@ -274,6 +302,72 @@ async function signOut() {
                 <span class="picker-symbol">{{ LOCALE_META[l].short }}</span>
                 <span class="picker-label">{{ LOCALE_META[l].label }}</span>
                 <Icon v-if="currentLocale === l" name="check" :size="18" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- AI / Voice settings -->
+    <Teleport to="body">
+      <div v-if="showAi" class="modal-backdrop" @click.self="showAi = false">
+        <div class="modal">
+          <div class="modal-header">
+            <button class="linklike" @click="showAi = false">
+              <Icon name="close" :size="16" /> {{ t('common.cancel') }}
+            </button>
+            <div class="eyebrow">{{ t('settings.ai') }}</div>
+          </div>
+          <div class="modal-body">
+            <h1 class="display">{{ t('settings.ai_provider') }}</h1>
+            <p class="ai-hint">{{ t('settings.ai_hint') }}</p>
+
+            <label class="field" style="margin-top: 16px">
+              <span>{{ t('settings.ai_base_url') }}</span>
+              <input
+                v-model="aiForm.base_url"
+                placeholder="https://api.openai.com/v1"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+              />
+            </label>
+
+            <label class="field" style="margin-top: 14px">
+              <span>{{ t('settings.ai_api_key') }}</span>
+              <input
+                v-model="aiForm.api_key"
+                type="password"
+                placeholder="sk-…"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+              />
+            </label>
+
+            <label class="field" style="margin-top: 14px">
+              <span>{{ t('settings.ai_chat_model') }}</span>
+              <input
+                v-model="aiForm.chat_model"
+                placeholder="gpt-4o-audio-preview"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+              />
+            </label>
+
+            <div style="margin-top: 24px">
+              <button
+                class="btn btn-primary btn-lg btn-block"
+                :disabled="!aiForm.base_url || !aiForm.chat_model"
+                @click="saveAi"
+              >
+                <Icon name="check" :size="18" />
+                {{ t('settings.ai_save') }}
               </button>
             </div>
           </div>
@@ -490,5 +584,14 @@ async function signOut() {
   font-family: var(--sans);
   font-size: 15px;
   font-weight: 500;
+}
+
+.ai-hint {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+  margin-top: 6px;
 }
 </style>

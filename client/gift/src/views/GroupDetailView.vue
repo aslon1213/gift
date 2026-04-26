@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { groupApi, spendingApi, userApi } from '../api/endpoints'
-import type { Group, Spending, User } from '../api/types'
+import { budgetApi, groupApi, spendingApi, userApi } from '../api/endpoints'
+import type { Budget, Group, Spending, User } from '../api/types'
 import { auth } from '../stores/auth'
 import { toast } from '../stores/toast'
 import Icon from '../components/Icon.vue'
@@ -192,6 +192,149 @@ async function removeSpending(id: string) {
   }
 }
 
+// --- swipe-to-link-budget ------------------------------------------------
+const SWIPE_OPEN_PX = 96 // matches the action button width
+const SWIPE_TRIGGER_PX = 48 // halfway → snap open
+
+const offsets = ref<Record<string, number>>({})
+const openSwipeId = ref<string | null>(null)
+const drag = ref<{
+  id: string
+  startX: number
+  startY: number
+  startOffset: number
+  active: boolean
+} | null>(null)
+
+function rowOffset(id: string): number {
+  return offsets.value[id] ?? 0
+}
+
+function setOffset(id: string, value: number) {
+  offsets.value = { ...offsets.value, [id]: value }
+}
+
+function closeSwipe() {
+  if (openSwipeId.value) {
+    setOffset(openSwipeId.value, 0)
+    openSwipeId.value = null
+  }
+}
+
+function onSwipeDown(id: string, e: PointerEvent) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return
+  drag.value = {
+    id,
+    startX: e.clientX,
+    startY: e.clientY,
+    startOffset: rowOffset(id),
+    active: false,
+  }
+}
+
+function onSwipeMove(id: string, e: PointerEvent) {
+  const d = drag.value
+  if (!d || d.id !== id) return
+  const dx = e.clientX - d.startX
+  const dy = e.clientY - d.startY
+  if (!d.active) {
+    // Lock direction once horizontal motion clearly dominates.
+    if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return
+    d.active = true
+    ;(e.target as Element)?.setPointerCapture?.(e.pointerId)
+  }
+  const next = Math.max(-SWIPE_OPEN_PX, Math.min(0, d.startOffset + dx))
+  setOffset(id, next)
+}
+
+function onSwipeUp(id: string, e: PointerEvent) {
+  const d = drag.value
+  drag.value = null
+  if (!d || d.id !== id) return
+  ;(e.target as Element)?.releasePointerCapture?.(e.pointerId)
+  if (!d.active) return
+  const open = Math.abs(rowOffset(id)) >= SWIPE_TRIGGER_PX
+  setOffset(id, open ? -SWIPE_OPEN_PX : 0)
+  if (open) {
+    if (openSwipeId.value && openSwipeId.value !== id) {
+      setOffset(openSwipeId.value, 0)
+    }
+    openSwipeId.value = id
+  } else if (openSwipeId.value === id) {
+    openSwipeId.value = null
+  }
+}
+
+// --- budget picker -------------------------------------------------------
+const budgets = ref<Budget[]>([])
+const linkingFor = ref<Spending | null>(null)
+const linkingBusy = ref(false)
+
+async function loadBudgets() {
+  try {
+    budgets.value = (await budgetApi.list()) ?? []
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to load budgets'
+  }
+}
+
+async function openLinkBudget(s: Spending) {
+  if (!budgets.value.length) await loadBudgets()
+  linkingFor.value = s
+  closeSwipe()
+}
+
+function closeLinkBudget() {
+  linkingFor.value = null
+  linkingBusy.value = false
+}
+
+function isLinked(s: Spending | null, b: Budget): boolean {
+  if (!s) return false
+  const bid = String(b.id ?? '')
+  return !!bid && (s.budgets ?? []).includes(bid)
+}
+
+async function toggleBudgetLink(b: Budget) {
+  if (!linkingFor.value) return
+  const sid = String(linkingFor.value._id ?? linkingFor.value.id)
+  const bid = String(b.id)
+  if (!sid || !bid) return
+  const linked = isLinked(linkingFor.value, b)
+  linkingBusy.value = true
+  try {
+    if (linked) {
+      await spendingApi.unlinkBudget(sid, bid)
+      // Mirror the change locally so the picker badge updates immediately and
+      // the row's "linked" chip reflects the unlink without a refetch.
+      mutateBudgets(sid, (ids) => ids.filter((x) => x !== bid))
+      toast.flash(`Unlinked from "${b.category}"`)
+    } else {
+      await spendingApi.linkBudget(sid, bid)
+      mutateBudgets(sid, (ids) => (ids.includes(bid) ? ids : [...ids, bid]))
+      toast.flash(`Linked to "${b.category}"`)
+    }
+    closeLinkBudget()
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Link failed'
+    linkingBusy.value = false
+  }
+}
+
+function mutateBudgets(spendingId: string, fn: (ids: string[]) => string[]) {
+  spendings.value = spendings.value.map((s) => {
+    if (String(s._id ?? s.id) !== spendingId) return s
+    const next = fn(s.budgets ?? [])
+    return { ...s, budgets: next }
+  })
+  if (linkingFor.value && String(linkingFor.value._id ?? linkingFor.value.id) === spendingId) {
+    linkingFor.value = {
+      ...linkingFor.value,
+      budgets: fn(linkingFor.value.budgets ?? []),
+    }
+  }
+}
+
 // --- derived -------------------------------------------------------------
 const currency = computed(() => spendings.value[0]?.currency ?? '$')
 const total = computed(() => sumBy(spendings.value, (s) => s.amount))
@@ -292,6 +435,7 @@ async function load() {
     const [sp] = await Promise.all([
       spendingApi.query({ group_id: props.id }),
       g ? loadMembers([g.owner_id, ...(g.member_ids ?? [])]) : Promise.resolve(),
+      loadBudgets(),
     ])
     spendings.value = sp ?? []
   } catch (e) {
@@ -299,6 +443,18 @@ async function load() {
   } finally {
     loading.value = false
   }
+}
+
+function budgetTagsFor(s: Spending): string[] {
+  const ids = s.budgets ?? []
+  if (!ids.length || !budgets.value.length) return []
+  const byId = new Map(budgets.value.map((b) => [String(b.id), b.category]))
+  const tags: string[] = []
+  for (const id of ids) {
+    const cat = byId.get(String(id))
+    if (cat) tags.push(cat)
+  }
+  return tags
 }
 
 async function deleteGroup() {
@@ -490,30 +646,57 @@ watch(() => props.id, load)
           <div
             v-for="(s, i) in spendings"
             :key="String(s._id ?? s.id)"
-            class="row-entry"
+            class="swipe-row"
             :class="{ last: i === spendings.length - 1 }"
           >
-            <div class="glyph"><Icon :name="iconFor(s.category)" :size="18" /></div>
-            <div style="min-width: 0">
-              <div class="title">
-                {{ s.description || s.category || 'Spending' }}
+            <button
+              class="swipe-action"
+              type="button"
+              @click="openLinkBudget(s)"
+            >
+              <Icon name="gauge" :size="16" />
+              <span>Budget</span>
+            </button>
+            <div
+              class="row-entry swipe-content"
+              :style="{ transform: `translateX(${rowOffset(String(s._id ?? s.id))}px)` }"
+              @pointerdown="onSwipeDown(String(s._id ?? s.id), $event)"
+              @pointermove="onSwipeMove(String(s._id ?? s.id), $event)"
+              @pointerup="onSwipeUp(String(s._id ?? s.id), $event)"
+              @pointercancel="onSwipeUp(String(s._id ?? s.id), $event)"
+            >
+              <div class="glyph"><Icon :name="iconFor(s.category)" :size="18" /></div>
+              <div style="min-width: 0">
+                <div class="title">
+                  {{ s.description || s.category || 'Spending' }}
+                </div>
+                <div class="sub">
+                  {{ when(s.date) }} · {{ memberName(s.user_id) }} paid
+                </div>
+                <div v-if="budgetTagsFor(s).length" class="tag-row">
+                  <span
+                    v-for="(t, ti) in budgetTagsFor(s)"
+                    :key="ti"
+                    class="budget-tag"
+                  >
+                    <Icon name="gauge" :size="10" />
+                    {{ t }}
+                  </span>
+                </div>
               </div>
-              <div class="sub">
-                {{ when(s.date) }} · {{ memberName(s.user_id) }} paid
+              <div class="figure">
+                <span class="cur">{{ s.currency || '$' }}</span>
+                {{ s.amount.toFixed(2) }}
+                <button
+                  v-if="s.user_id === myId"
+                  class="linklike"
+                  style="margin-left: 4px; color: var(--ink-ghost)"
+                  :title="'Delete'"
+                  @click.stop="removeSpending(String(s._id ?? s.id))"
+                >
+                  <Icon name="close" :size="14" />
+                </button>
               </div>
-            </div>
-            <div class="figure">
-              <span class="cur">{{ s.currency || '$' }}</span>
-              {{ s.amount.toFixed(2) }}
-              <button
-                v-if="s.user_id === myId"
-                class="linklike"
-                style="margin-left: 4px; color: var(--ink-ghost)"
-                :title="'Delete'"
-                @click="removeSpending(String(s._id ?? s.id))"
-              >
-                <Icon name="close" :size="14" />
-              </button>
             </div>
           </div>
         </div>
@@ -528,6 +711,61 @@ watch(() => props.id, load)
         </button>
       </div>
     </template>
+
+    <!-- Budget picker modal -->
+    <Teleport to="body">
+      <div
+        v-if="linkingFor"
+        class="modal-backdrop"
+        @click.self="closeLinkBudget"
+      >
+        <div class="modal">
+          <div class="modal-header">
+            <button class="linklike" @click="closeLinkBudget">
+              <Icon name="close" :size="16" /> CANCEL
+            </button>
+            <div class="eyebrow">LINK · BUDGET</div>
+          </div>
+          <div class="modal-body">
+            <h1 class="display">
+              Pin this to <em>a budget.</em>
+            </h1>
+            <p class="muted small" style="margin-top: 6px">
+              {{ linkingFor.description || linkingFor.category || 'Spending' }}
+              · {{ linkingFor.currency || '$' }}{{ linkingFor.amount.toFixed(2) }}
+            </p>
+
+            <div v-if="!budgets.length" class="empty" style="margin-top: 18px">
+              No budgets yet. Create one in the Budgets tab first.
+            </div>
+            <div v-else class="picker-list" style="margin-top: 18px">
+              <button
+                v-for="b in budgets"
+                :key="String(b.id)"
+                class="picker-row"
+                :class="{ on: isLinked(linkingFor, b) }"
+                :disabled="linkingBusy"
+                @click="toggleBudgetLink(b)"
+              >
+                <span class="picker-symbol">
+                  <Icon :name="iconFor(b.category)" :size="18" />
+                </span>
+                <span class="picker-label">
+                  {{ b.category }}
+                  <span class="muted small" style="display: block; margin-top: 2px">
+                    {{ b.currency || '' }} {{ b.amount }} / {{ b.limit }} · {{ b.period }}
+                  </span>
+                </span>
+                <span v-if="isLinked(linkingFor, b)" class="badge linked-badge">
+                  LINKED · TAP TO UNLINK
+                </span>
+                <Icon v-else name="chevR" :size="14" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Members modal -->
     <Teleport to="body">
@@ -701,5 +939,131 @@ watch(() => props.id, load)
   margin-top: 36px;
   padding-top: 16px;
   border-top: 1px solid var(--line);
+}
+
+/* Swipe-to-link rows */
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+.swipe-row.last {
+  border-bottom: none;
+}
+.swipe-row .swipe-content {
+  background: var(--paper);
+  /* Cancel the bottom border applied by the global .row-entry rule —
+   * the wrapper draws it for us so it stays put while the row slides. */
+  border-bottom: none !important;
+  transition: transform 0.18s cubic-bezier(0.22, 0.9, 0.28, 1);
+  touch-action: pan-y;
+  user-select: none;
+  cursor: grab;
+}
+.swipe-row .swipe-content:active {
+  cursor: grabbing;
+}
+.swipe-row .swipe-action {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 96px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+}
+.swipe-row .swipe-action:hover {
+  background: #000;
+}
+
+/* Local copy of the picker-list rules used by Settings, so the budget picker
+ * looks consistent. Kept scoped to this view. */
+.picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.picker-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 22px;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  transition: border-color 0.15s, background 0.15s;
+}
+.picker-row:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.picker-row:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.picker-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+}
+.picker-label {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Highlight already-linked picker rows */
+.picker-row.on {
+  border-color: var(--ink);
+  background: var(--paper-deep);
+}
+
+.linked-badge {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.budget-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--paper-deep);
+  color: var(--ink);
+  border: 1px solid var(--line-hard);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 </style>

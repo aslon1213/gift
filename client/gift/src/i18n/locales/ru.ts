@@ -19,6 +19,8 @@ export default {
 
   'nav.home': 'Главная',
   'nav.groups': 'Группы',
+  'nav.spendings': 'Расходы',
+  'nav.incomes': 'Доходы',
   'nav.budget': 'Бюджет',
   'nav.goals': 'Цели',
   'nav.server': 'Сервер',
@@ -82,6 +84,8 @@ export default {
   'budgets.cap_a_category': 'Установить лимит.',
   'budgets.category': 'КАТЕГОРИЯ',
   'budgets.category_placeholder': 'Еда, Путешествия, Аренда…',
+  'budgets.limit': 'ЛИМИТ',
+  'budgets.already_spent': 'УЖЕ ПОТРАЧЕНО',
   'budgets.period': 'ПЕРИОД',
   'budgets.period.weekly': 'неделя',
   'budgets.period.monthly': 'месяц',
@@ -146,4 +150,23 @@ export default {
   'lang.en': 'Английский',
   'lang.ru': 'Русский',
   'lang.uz': 'Узбекский',
+
+  'voice.tap_to_speak': 'Голос',
+  'voice.recording_tap_to_stop': 'Нажмите, чтобы остановить',
+  'voice.parsing': 'Понимаем…',
+  'voice.error': 'Голос не сработал',
+  'voice.not_configured': 'Сначала настройте AI-провайдера',
+  'voice.filled_from_speech': 'Заполнено по голосу',
+  'voice.nothing_understood': 'Не удалось распознать',
+
+  'settings.ai': 'AI и голос',
+  'settings.ai_provider': 'Провайдер AI',
+  'settings.ai_base_url': 'Базовый URL',
+  'settings.ai_api_key': 'API ключ',
+  'settings.ai_chat_model': 'Чат-модель с аудио',
+  'settings.ai_save': 'Сохранить AI',
+  'settings.ai_hint':
+    'OpenAI-совместимый эндпоинт с поддержкой аудио-ввода (напр. gpt-4o-audio-preview). Голос уходит сразу в модель — без отдельной транскрипции.',
+  'settings.ai_configured': 'Настроено',
+  'settings.ai_not_configured': 'Не настроено',
 }

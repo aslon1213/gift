@@ -37,3 +37,4 @@ tmp/
 *.keystore
 *.jks
 key.txt
+server/bin/

@@ -2,21 +2,20 @@
 import { computed, onMounted, ref } from 'vue'
 import Icon from '../components/Icon.vue'
 import Ring from '../components/Ring.vue'
+import VoiceInputButton from '../components/VoiceInputButton.vue'
 import type { IconName } from '../components/icons'
-import { budgetApi, spendingApi } from '../api/endpoints'
-import type { Budget, Spending } from '../api/types'
-import { auth } from '../stores/auth'
+import { budgetApi } from '../api/endpoints'
+import type { Budget } from '../api/types'
 import { toast } from '../stores/toast'
 import { userStore } from '../stores/user'
 import { currencySymbol, moneyWhole } from '../utils/format'
-import { sumBy } from '../utils/charts'
+import { parseBudgetFromAudio, type BudgetDraft } from '../ai/parse'
 import { t } from '../i18n'
 
 const currency = computed(() => userStore.currency.value)
 const curSymbol = computed(() => currencySymbol(currency.value))
 
 const budgets = ref<Budget[]>([])
-const spendings = ref<Spending[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
@@ -24,7 +23,8 @@ const error = ref<string | null>(null)
 const showCreate = ref(false)
 const creating = ref(false)
 const newCategory = ref('')
-const newAmount = ref<number | null>(null)
+const newLimit = ref<number | null>(null)
+const newCurrent = ref<number | null>(null)
 const newPeriod = ref('monthly')
 
 const CATEGORY_ICON: Record<string, IconName> = {
@@ -49,38 +49,25 @@ function iconFor(cat: string): IconName {
   return CATEGORY_ICON[cat.toLowerCase().trim()] ?? 'wallet'
 }
 
-// Spent in the period for a given budget's category — pragmatic: all-time spend for that category
+// `amount` is now the spent-so-far value tracked by the server; `limit` is the cap.
+function limitFor(b: Budget): number {
+  return b.limit || 0
+}
 function spentFor(b: Budget): number {
-  const key = b.category.toLowerCase().trim()
-  const now = Date.now()
-  const start = new Date(b.start_date || 0).getTime()
-  const end = b.end_date ? new Date(b.end_date).getTime() : now
-  return sumBy(
-    spendings.value.filter((s) => {
-      if ((s.category ?? '').toLowerCase().trim() !== key) return false
-      const t = new Date(s.date).getTime()
-      return t >= start && t <= end
-    }),
-    (s) => s.amount,
-  )
+  return b.amount || 0
+}
+function pctFor(b: Budget): number {
+  return limitFor(b) ? spentFor(b) / limitFor(b) : 0
 }
 
-const total = computed(() => budgets.value.reduce((a, b) => a + b.amount, 0))
-const used = computed(() =>
-  budgets.value.reduce((a, b) => a + spentFor(b), 0),
-)
+const total = computed(() => budgets.value.reduce((a, b) => a + limitFor(b), 0))
+const used = computed(() => budgets.value.reduce((a, b) => a + spentFor(b), 0))
 
 async function load() {
   loading.value = true
   error.value = null
   try {
-    const uid = auth.userIdFromToken()
-    const [b, s] = await Promise.all([
-      budgetApi.list(),
-      uid ? spendingApi.query({ user_id: uid }) : spendingApi.query(),
-    ])
-    budgets.value = b ?? []
-    spendings.value = s ?? []
+    budgets.value = (await budgetApi.list()) ?? []
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load'
   } finally {
@@ -90,18 +77,36 @@ async function load() {
 
 function openCreate() {
   newCategory.value = ''
-  newAmount.value = null
+  newLimit.value = null
+  newCurrent.value = null
   newPeriod.value = 'monthly'
   showCreate.value = true
 }
 
+const VALID_PERIODS = ['weekly', 'monthly', 'trip', 'yearly'] as const
+
+function applyBudgetDraft(draft: BudgetDraft) {
+  if (draft.category) newCategory.value = draft.category
+  if (draft.limit != null && draft.limit > 0) newLimit.value = draft.limit
+  if (draft.amount != null && draft.amount >= 0) newCurrent.value = draft.amount
+  if (draft.period && (VALID_PERIODS as readonly string[]).includes(draft.period)) {
+    newPeriod.value = draft.period
+  }
+  toast.flash(t('voice.filled_from_speech'))
+}
+
+function onVoiceError(msg: string) {
+  toast.flash(msg)
+}
+
 async function createBudget() {
-  if (!newCategory.value.trim() || !newAmount.value) return
+  if (!newCategory.value.trim() || !newLimit.value) return
   creating.value = true
   try {
     await budgetApi.create({
       category: newCategory.value.trim(),
-      amount: newAmount.value,
+      limit: newLimit.value,
+      amount: newCurrent.value ?? 0,
       period: newPeriod.value,
       currency: currency.value,
       start_date: new Date().toISOString(),
@@ -171,17 +176,15 @@ onMounted(load)
         >
           <div class="ring-wrap">
             <Ring
-              :pct="b.amount ? spentFor(b) / b.amount : 0"
+              :pct="pctFor(b)"
               :size="44"
               :stroke="3"
-              :color="spentFor(b) / b.amount > 1 ? '#D64933' : '#14171F'"
+              :color="pctFor(b) > 1 ? '#D64933' : '#14171F'"
               bg="var(--line)"
             />
             <div
               class="ring-icon"
-              :style="{
-                color: spentFor(b) / b.amount > 1 ? 'var(--hot)' : 'var(--ink)',
-              }"
+              :style="{ color: pctFor(b) > 1 ? 'var(--hot)' : 'var(--ink)' }"
             >
               <Icon :name="iconFor(b.category)" :size="16" />
             </div>
@@ -189,15 +192,12 @@ onMounted(load)
           <div>
             <div class="cat-label">
               {{ b.category }}
-              <span v-if="spentFor(b) / b.amount > 1" class="over-tag">{{ t('budgets.over') }}</span>
+              <span v-if="pctFor(b) > 1" class="over-tag">{{ t('budgets.over') }}</span>
             </div>
-            <div
-              class="cat-sub"
-              :class="{ over: spentFor(b) / b.amount > 1 }"
-            >
+            <div class="cat-sub" :class="{ over: pctFor(b) > 1 }">
               {{ moneyWhole(spentFor(b), currency) }} /
-              {{ moneyWhole(b.amount, currency) }} ·
-              {{ b.amount ? Math.round((spentFor(b) / b.amount) * 100) : 0 }}% ·
+              {{ moneyWhole(limitFor(b), currency) }} ·
+              {{ Math.round(pctFor(b) * 100) }}% ·
               {{ b.period.toUpperCase() }}
             </div>
           </div>
@@ -230,7 +230,14 @@ onMounted(load)
           </div>
 
           <div class="modal-body">
-            <h1 class="display">{{ t('budgets.cap_a_category') }}</h1>
+            <div class="row spread" style="align-items: center; margin-bottom: 10px">
+              <h1 class="display" style="margin: 0">{{ t('budgets.cap_a_category') }}</h1>
+              <VoiceInputButton
+                :parser="parseBudgetFromAudio"
+                @result="applyBudgetDraft"
+                @error="onVoiceError"
+              />
+            </div>
 
             <label class="field" style="margin-top: 20px">
               <span>{{ t('budgets.category') }}</span>
@@ -240,16 +247,28 @@ onMounted(load)
               />
             </label>
 
-            <label class="field" style="margin-top: 14px">
-              <span>{{ t('common.amount') }} ({{ currency }})</span>
-              <input
-                v-model.number="newAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                :placeholder="curSymbol + '600'"
-              />
-            </label>
+            <div class="stack-form split" style="margin-top: 14px">
+              <label class="field">
+                <span>{{ t('budgets.limit') }} ({{ currency }})</span>
+                <input
+                  v-model.number="newLimit"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  :placeholder="curSymbol + '600'"
+                />
+              </label>
+              <label class="field">
+                <span>{{ t('budgets.already_spent') }} ({{ currency }})</span>
+                <input
+                  v-model.number="newCurrent"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0"
+                />
+              </label>
+            </div>
 
             <label class="field" style="margin-top: 14px">
               <span>{{ t('budgets.period') }}</span>
@@ -270,7 +289,7 @@ onMounted(load)
             <div style="margin-top: 28px">
               <button
                 class="btn btn-primary btn-lg btn-block"
-                :disabled="!newCategory.trim() || !newAmount || creating"
+                :disabled="!newCategory.trim() || !newLimit || creating"
                 @click="createBudget"
               >
                 <Icon name="check" :size="18" />

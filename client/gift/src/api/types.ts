@@ -53,6 +53,7 @@ export interface Spending {
   category: string
   description: string
   date: string
+  budgets?: string[]
   created_at?: string
   updated_at?: string
 }
@@ -73,6 +74,7 @@ export interface Budget {
   id?: string
   user_id: string
   category: string
+  limit: number
   amount: number
   currency: string
   period: string
